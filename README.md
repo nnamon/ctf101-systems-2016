@@ -29,3 +29,7 @@ By the end of the workshop, participants should be aware of the skills and some 
 1. Shellcode Writing
 2. Heap vulnerabilities
 3. Return Oriented Programming
+
+## Lesson Plan
+
+Please refer to the [lesson plan](./lessonplan.md) for complete content.
