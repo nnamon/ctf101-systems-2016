@@ -232,8 +232,23 @@ wheatley@ctf101-shell:~/ctf101$
 
 We will go through a quick run through of the Python syntax you need to know.
 
+#### Script Skeleton
 
-- Important module use
+Use the following template as a base for all python scripts:
+
+```python
+#!/usr/bin/python
+
+def main():
+    pass    # Code goes in here
+
+if __name__ == "__main__":
+    main()
+```
+
+
+
+### Important Modules
 
 ## 3. Input/Output
 
