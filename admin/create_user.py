@@ -42,10 +42,10 @@ def main():
     cryptpass = subprocess.check_output(["/usr/bin/openssl",
                                          "passwd", "-1", password]).strip()
 
-    parameters = ["useradd", "-s", "/bin/bash", "-m", "-g",
+    parameters = ["/usr/sbin/useradd", "-s", "/bin/bash", "-m", "-g",
                   "ctf101", "-p", cryptpass, username]
     subprocess.call(parameters)
-    subprocess.call(["edquota", "-p", "quotaproto", username])
+    subprocess.call(["/usr/sbin/edquota", "-p", "quotaproto", username])
 
     hashed = md5.md5(password).hexdigest()
 

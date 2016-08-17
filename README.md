@@ -1,10 +1,11 @@
 # ctf101-systems-2016
 
-ctf101 systems security repository
+ctf101 systems security repository. Day two of the workshop.
 
 ## Objective
 
-By the end of the workshop, participants should be aware of the skills and some of the tools required to develop exploits for systems based applications. 
+By the end of the workshop, participants should be aware of the skills and some 
+of the tools required to develop exploits for systems based applications. 
 
 
 ## Syllabus
