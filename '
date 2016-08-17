@@ -88,7 +88,7 @@ There are three ways to work with python:
 
 1. The Interpreter
 2. A Script
-3. Through the Argument
+3. Through the Command Line
 
 ### The Interpreter
 
@@ -102,59 +102,9 @@ Run python
 Now, you may interact with the python interpreter by typing python statements
 and pressing enter to evaluate the statement immediately.
 
-```
-Evaluating statements
-```
-
-This is extremely useful when prototyping your exploits since you can get
-feedback about what is happening in real time by exploring python objects.
-
-```
-dir on object
-```
-
-However, we want to do something better. We now exit from the python interpreter
-by typing `exit()` and launch the iPython interpreter. This upgraded interpreter
-has quality of life improvements such colourised output, tab completion, and
-object introspection. To launch it type `ipython`:
-
-```
-ipython demo
-```
-
 ### A Script
 
-Typing so much all the time is not very useful for actual work though and we can
-place our python programs in scripts. Launch your favourite text editor and
-create the following [program](./lessonfiles/offensivepython/1-sample.py) as 
-`sample.py`:
-
-```
-#!/usr/bin/python
-
-def main():
-    name = raw_input("Name: ")
-    print "Your name is", name
-
-if __name__ == "__main__":
-    main()
-```
-
-Run the script by entering `python sample.py` in the terminal.
-
-```
-run sample.py
-```
-
-### Through the Argument
-
-Sometimes if what we need to do is terse enough to do in a single line of
-python, we may opt to pass the python code as an argument to the python program.
-This lets us create nifty one liners to use in terminal trickery.
-
-```
-one liner
-```
+### Through the Command Line
 
 - How to invoke python (cmd, interpreter, script)
 
