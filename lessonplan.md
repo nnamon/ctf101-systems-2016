@@ -84,13 +84,15 @@ language and required features of it.
 The following code snippets assume the shell environment you have been given
 during the previous session.
 
+### Working with Python
+
 There are three ways to work with python:
 
 1. The Interpreter
 2. A Script
 3. Through the Argument
 
-### The Interpreter
+#### The Interpreter
 
 To launch an interactive interpreter, you can simply run the `python` command in
 the terminal.
@@ -148,7 +150,7 @@ by typing `exit()` and launch the iPython interpreter. This upgraded interpreter
 has quality of life improvements such colourised output, tab completion, and
 object introspection. To launch it type `ipython`:
 
-```
+```bash
 >>> exit()
 wheatley@ctf101-shell:~/ctf101$ ipython
 Python 2.7.12 (default, Jul  1 2016, 15:12:24)
@@ -177,7 +179,7 @@ Out[3]: '5f4dcc3b5aa765d61d8327deb882cf99'
 In [4]:
 ```
 
-### A Script
+#### A Script
 
 Typing so much all the time is not very useful for actual work though and we can
 place our python programs in scripts. Launch your favourite text editor and
@@ -204,11 +206,11 @@ Your name is Wheatley Robot
 wheatley@ctf101-shell:~/ctf101$
 ```
 
-### Through the Argument
+#### Through the Argument
 
 Sometimes if what we need to do is terse enough to do in a single line of
 python, we may opt to pass the python code as an argument to the python program.
-This lets us create nifty one liners to use in terminal trickery.
+This lets us create nifty one liners for use in terminal trickery.
 
 ```bash
 wheatley@ctf101-shell:~/ctf101$ python -c 'print "Clone\n"*10'
@@ -226,9 +228,11 @@ Clone
 wheatley@ctf101-shell:~/ctf101$
 ```
 
-- How to invoke python (cmd, interpreter, script)
+### Language syntax
 
-- Language syntax
+We will go through a quick run through of the Python syntax you need to know.
+
+
 - Important module use
 
 ## 3. Input/Output
