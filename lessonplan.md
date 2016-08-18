@@ -22,9 +22,10 @@ previous day
 8. Memory Layout
 9. Stack Frames
 10. Calling Conventions
-11. Memory Corruption Vulnerabilities
-12. Other Vulnerabilities
-13. Mitigations and Bypasses
+11. Debuggers
+12. Memory Corruption Vulnerabilities
+13. Other Vulnerabilities
+14. Mitigations and Bypasses
 
 ## 0. Approach
 
@@ -98,18 +99,18 @@ To launch an interactive interpreter, you can simply run the `python` command in
 the terminal.
 
 ```bash
-wheatley@ctf101-shell:~/ctf101$ python
+elliot@ctf101-shell:~/ctf101$ python
 Python 2.7.12 (default, Jul  1 2016, 15:12:24)
 [GCC 5.4.0 20160609] on linux2
 Type "help", "copyright", "credits" or "license" for more information.
->>>
+>>
 ```
 
 Now, you may interact with the python interpreter by typing python statements
 and pressing enter to evaluate the statement immediately.
 
 ```bash
-wheatley@ctf101-shell:~/ctf101$ python
+elliot@ctf101-shell:~/ctf101$ python
 Python 2.7.12 (default, Jul  1 2016, 15:12:24)
 [GCC 5.4.0 20160609] on linux2
 Type "help", "copyright", "credits" or "license" for more information.
@@ -152,7 +153,7 @@ object introspection. To launch it type `ipython`:
 
 ```bash
 >>> exit()
-wheatley@ctf101-shell:~/ctf101$ ipython
+elliot@ctf101-shell:~/ctf101$ ipython
 Python 2.7.12 (default, Jul  1 2016, 15:12:24)
 Type "copyright", "credits" or "license" for more information.
 
@@ -200,10 +201,10 @@ if __name__ == "__main__":
 Run the script by entering `python sample.py` in the terminal.
 
 ```bash
-wheatley@ctf101-shell:~/ctf101$ python sample.py
-Name: Wheatley Robot
-Your name is Wheatley Robot
-wheatley@ctf101-shell:~/ctf101$
+elliot@ctf101-shell:~/ctf101$ python sample.py
+Name: Mr Robot
+Your name is Mr Robot
+elliot@ctf101-shell:~/ctf101$
 ```
 
 #### Through the Argument
@@ -213,7 +214,7 @@ python, we may opt to pass the python code as an argument to the python program.
 This lets us create nifty one liners for use in terminal trickery.
 
 ```bash
-wheatley@ctf101-shell:~/ctf101$ python -c 'print "Clone\n"*10'
+elliot@ctf101-shell:~/ctf101$ python -c 'print "Clone\n"*10'
 Clone
 Clone
 Clone
@@ -225,12 +226,20 @@ Clone
 Clone
 Clone
 
-wheatley@ctf101-shell:~/ctf101$
+elliot@ctf101-shell:~/ctf101$
+```
+
+Why would you use this option? For example, you might want to get something
+quick and easy output for piping into another program.
+
+```bash
+python pipe example
 ```
 
 ### Language syntax
 
-We will go through a quick run through of the Python syntax you need to know.
+We will go through a quick run through of the Python syntax you need to know for
+our purposes.
 
 #### Script Skeleton
 
@@ -246,9 +255,127 @@ if __name__ == "__main__":
     main()
 ```
 
+The reason we do this is to keep our code neat and structured by ensuring all
+functions and global variables are defined before we use them as python
+interprets each line sequentially.
 
+#### Whitespace
+
+If you have not already noticed, python is extremely sensitive to whitespace.
+This allows the language to do away with braces or start-end sigils by
+implicitly determining the scope of a particular piece of code by the
+indentation level.
+
+```python
+#!/usr/bin/python
+
+# This runs at the global scope.
+alpha = 1
+
+def main():
+    # This runs at the scope of main()
+    beta = 2
+
+    if beta == 2:
+        # This runs if the conditional is true
+        charlie = 3
+    else:
+        # This runs if the conditional is false
+        charlie = 4
+
+if __name__ == "__main__":
+    main()
+```
+
+Make sure to not mix tabs and spaces for indentation as python will complain
+about it.
+
+#### Variables
+
+You have already seen this but let us expand on this a little further. Python is
+a dynamically typed language which means there is no requirement to declare the
+type of a variable while writing your script. Objects do have types, however.
+Think of the variable as a generic 'reference' to these typed objects.
+
+```python
+#!/usr/bin/python
+
+# Creating a 'global' variable
+var_global = 1337
+
+def main():
+    # Creating a variable that holds an integer
+    var_one = 54321
+
+    # Creating two variables that hold strings
+    var_two = "I am a string"
+    var_three = 'I too am a string, even though my quotes are single'
+
+    # Creating a list object
+    var_four = []
+
+    # Creating a dict object
+    var_five = {}
+
+    # Creating a tuple object with two integers
+    var_six = (41, 42)
+
+    # Creating a file object from /etc/passwd
+    var_seven = open("/etc/passwd")
+
+    # Printing the contents of the file object by referencing a method
+    print var_seven.read()
+
+
+
+if __name__ == "__main__":
+    main()
+```
+
+#### Conditionals
+
+```python
+#!/usr/bin/python
+
+def main():
+    # if else conditionals are extremely important
+    if True:
+        # This definitely gets printed.
+        print "I passed"
+    else:
+        # This never gets printed.
+        print "I failed"
+
+    current_year = 2016
+
+    # Conditionals over variables
+    if current_year > 2020:
+        print "It's the future!"
+    elif current_year == 2016:
+        print "Come on, it's the CURRENT_YEAR!"
+    else:
+        print "Absolutely stone age"
+
+    # This is not extremely important but demonstrates conditionals in list
+    # comprehensions
+    multiples_of_two = [i for i in range(16) if i % 2 == 0]
+    print multiples_of_two
+
+
+if __name__ == "__main__":
+    main()
+```
+
+- For, while loops
+- String and List Operations
+- Functions
 
 ### Important Modules
+
+- sys
+- struct
+- base64
+- subprocess
 
 ## 3. Input/Output
 
@@ -259,22 +386,66 @@ if __name__ == "__main__":
 
 ## 4. Types of Compromise
 
+- Denial of Service
+- Information Leakage
+- Arbitrary Read
+- Arbitrary Write
+- Remote Command Execution
+
 ## 5. Illustration of Compromise in Target Python Applications
 
 ## 6. Data Representation and Endianness
 
+- Numbering Systems: Decimal, Binary, Hexadecimal
+- Data Representation: integers, word size, ascii, asciiz strings
+- Endianness
+
 ## 7. C and x86-64 Assembly
+
+- Compiling C
+- Disassembling the binary
+- Reading x86-64 assembly
 
 ## 8. Memory Layout
 
+- Stack and Heap
+- Variables - stack variables, dynamically allocated variables and static
+  variables
+
 ## 9. Stack Frames
+
+- Saved RIP
+- Saved EBP
 
 ## 10. Calling Conventions
 
-## 11. Memory Corruption Vulnerabilities
+- stcall
+- cdecl
+- fastcall
 
-## 12. Other Vulnerabilities
+## 11 Debuggers
 
-## 13. Mitigations and Bypasses
+- GDB
+- GDB Extension - PEDA
+- Inputs
+- Breakpoints
+- Examining and modifying context
+- Crash Analysis
 
+## 12. Memory Corruption Vulnerabilities
+
+## 13. Other Vulnerabilities
+
+- Format string bugs
+- Insecure paths
+- Integer overflows
+- Predictive randomisation
+
+## 14. Mitigations and Bypasses
+
+Briefly and not in depth
+
+- Stack Canaries
+- ASLR
+- NX 
 

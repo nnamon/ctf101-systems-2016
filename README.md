@@ -20,9 +20,10 @@ of the tools required to develop exploits for systems based applications.
 8. Memory Layout
 9. Stack Frames
 10. Calling Conventions
-11. Memory Corruption Vulnerabilities
-12. Other Vulnerabilities
-13. Mitigations and Bypasses
+11. Debuggers
+12. Memory Corruption Vulnerabilities
+13. Other Vulnerabilities
+14. Mitigations and Bypasses
 
 
 ## What Is Not Covered?
