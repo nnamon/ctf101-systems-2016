@@ -233,7 +233,8 @@ Why would you use this option? For example, you might want to get something
 quick and easy output for piping into another program.
 
 ```bash
-python pipe example
+elliot@ctf101-shell:~/ctf101$ python -c 'print "MrRobot"*42' | md5sum
+827eae4fb606cf49ccaf8fc6b65cfdae  -
 ```
 
 ### Language syntax
@@ -612,14 +613,15 @@ if __name__ == "__main__":
 
 ### Important Modules
 
-- sys
-- struct
-- base64
-- subprocess
-- random
-- socket
+Throughout the workshop, we will introduce important python modules as we
+require. Modules are external 'libraries' that we import for use in our scripts.
 
 ## 3. Input/Output
+
+Every interesting program requires some interaction with the user. Input/output
+mechanisms give us this means of interaction and often, I/O sources are the very
+first place to look at when trying to figure out how to cause a crash from user
+supplied input.
 
 - Arguments
 - Stdin/Stdout/Stderr
