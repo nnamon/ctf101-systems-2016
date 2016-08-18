@@ -623,10 +623,85 @@ mechanisms give us this means of interaction and often, I/O sources are the very
 first place to look at when trying to figure out how to cause a crash from user
 supplied input.
 
-- Arguments
-- Stdin/Stdout/Stderr
-- Files
-- Sockets
+### Arguments
+
+The first way a program may take input is through its arguments. Let us use the
+ping command as an example.
+
+```bash
+elliot@ctf101-shell:~$ ping -h
+Usage: ping [-aAbBdDfhLnOqrRUvV] [-c count] [-i interval] [-I interface]
+            [-m mark] [-M pmtudisc_option] [-l preload] [-p pattern] [-Q tos]
+            [-s packetsize] [-S sndbuf] [-t ttl] [-T timestamp_option]
+            [-w deadline] [-W timeout] [hop1 ...] destination
+```
+
+The help argument (-h) tells the ping command to print the available options for
+arguments. In this case, the destination to ping is required as an argument.
+
+```bash
+elliot@ctf101-shell:~$ ping google.com
+PING google.com (74.125.200.138) 56(84) bytes of data.
+64 bytes from sa-in-f138.1e.net (74.125.200.138): icmp_seq=1 ttl=50 time=3.15 ms
+64 bytes from sa-in-f138.1e.net (74.125.200.138): icmp_seq=2 ttl=50 time=2.96 ms
+64 bytes from sa-in-f138.1e.net (74.125.200.138): icmp_seq=3 ttl=50 time=3.10 ms
+^C
+--- google.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 2.969/3.079/3.159/0.080 ms
+elliot@ctf101-shell:~$
+```
+
+Sometimes you want to provide spaces within an argument. For example, you want
+to create one file called "cool file" but when you try it by using the touch
+program, two files called 'cool' and 'file' are created instead.
+
+```bash
+elliot@ctf101-shell:~/myfiles$ touch cool file
+elliot@ctf101-shell:~/myfiles$ ls -la
+total 8
+drwxr-xr-x 2 elliot ctf101 4096 Aug 18 18:37 .
+drwxr-xr-x 4 elliot ctf101 4096 Aug 18 18:37 ..
+-rw-r--r-- 1 elliot ctf101    0 Aug 18 18:37 cool
+-rw-r--r-- 1 elliot ctf101    0 Aug 18 18:37 file
+elliot@ctf101-shell:~/myfiles$
+```
+
+We can remedy this by using quotes to treat whatever is in between them as a
+single argument to the program.
+
+```bash
+elliot@ctf101-shell:~/myfiles$ touch 'cool file'
+elliot@ctf101-shell:~/myfiles$ ls -la
+total 8
+drwxr-xr-x 2 elliot ctf101 4096 Aug 18 18:38 .
+drwxr-xr-x 4 elliot ctf101 4096 Aug 18 18:37 ..
+-rw-r--r-- 1 elliot ctf101    0 Aug 18 18:38 cool file
+elliot@ctf101-shell:~/myfiles$
+```
+
+Now, let us consider the situation where you would like to programmatically
+compute the argument instead of giving the program a static argument each time.
+Perhaps, in this scenario you would like to rename the file to the md5 hash of
+its contents. We can employ the use of backticks in bash to achieve this.
+
+```bash
+elliot@ctf101-shell:~/myfiles$ ls -la 'cool file'
+-rw-r--r-- 1 elliot ctf101 0 Aug 18 18:38 cool file
+elliot@ctf101-shell:~/myfiles$ md5sum 'cool file' | cut -c -32
+d41d8cd98f00b204e9800998ecf8427e
+elliot@ctf101-shell:~/myfiles$ mv 'cool file' `md5sum 'cool file' | cut -c -32`
+elliot@ctf101-shell:~/myfiles$ ls -la
+total 8
+drwxr-xr-x 2 elliot ctf101 4096 Aug 18 18:50 .
+drwxr-xr-x 4 elliot ctf101 4096 Aug 18 18:37 ..
+-rw-r--r-- 1 elliot ctf101    0 Aug 18 18:38 d41d8cd98f00b204e9800998ecf8427e
+elliot@ctf101-shell:~/myfiles$
+```
+
+### Stdin/Stdout/Stderr
+### Files
+### Sockets
 
 ## 4. Types of Compromise
 
