@@ -415,10 +415,200 @@ if __name__ == "__main__":
 And there exists also a convenient feature of python called list comprehensions.
 Please do not worry if the following is hard to follow:
 
+```python
+#!/usr/bin/python
+
+def main():
+    # This might look like magic but it is basically a loop within a list
+    mults_of_two = [i*2 for i in range(100)]
+
+    # This allows us to create some really useful transformations
+    fruits = ["apple", "orange", "mango", "blueberries"]
+    fruit_lengths = [len(i) for i in fruits]
+
+    # We can even make it look like an indexed loop
+    fruit_output = ["%s (%d)" % (fruits[i], fruit_lengths[i]) for i in
+                    range(len(fruits))]
+
+    # Insert newlines in between the fruit outputs and print the entire string
+    print "\n".join(fruit_output)
+
+if __name__ == "__main__":
+    main()
+```
+
+#### List and String Slicing
+
+Lists are straightforward and creating sublists is extremely easy with slices.
+
+```python
+#!/usr/bin/python
+
+def main():
+    # We create a list of numbers
+    numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    # Slices let you create sublists from an original list
+    # Syntax for slices look like: list[start_including:stop_excluding:step]
+    one_to_three = numbers[1:4]  # Remember we exclude the last index
+
+    print one_to_three  # Results in [1, 2, 3]
+
+    # We can also omit arguments to signify either a from start or to end
+    zero_to_four = numbers[:5]
+    seven_to_nine = numbers[7:]
+
+    print zero_to_four  # Results in [0, 1, 2, 3, 4]
+    print seven_to_nine  # Results in [7, 8, 9]
+
+    # We can skip numbers by providing a step
+    twos = numbers[::2]
+    threes = numbers[::3]
+
+    print twos  # Results in [0, 2, 4, 6, 8]
+    print threes # Results in [0, 3, 6, 9]
+
+    # We can also reverse the list
+    rev_numbers = numbers[::-1]
+
+    print rev_numbers  # Results in [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+
+if __name__ == "__main__":
+    main()
+```
+
+Strings also work with slices to create substrings.
+
+```python
+#!/usr/bin/python
+
+def main():
+    # The cake is a lie
+    birthday_party = "The cake is a lie"
+
+    cake = birthday_party[4:8]
+    print cake  # Result is cake
+
+    reverse = birthday_party[::-1]
+    print reverse  # Result is eil a si ekac ehT
+
+if __name__ == "__main__":
+    main()
+```
+
+#### String Operations and Encoding
+
+Some important string operations make for fast writing of exploits with how
+convenient they are to use.
+
+```python
+#!/usr/bin/python
+
+def main():
+    users = "admin:passwd chrome:metal emacs:vims"
+
+    # We can do string splits by spaces
+    users_split = users.split()
+
+    print users_split
+    # Result is ['admin:passwd', 'chrome:metal', 'emacs:vims']
+
+    # We can also split strings by an arbitrary string sequence
+    for i in users_split:
+        creds_split = i.split(":")
+        print "Username:", creds_split[0], "Password:", creds_split[1]
+
+    # Get only the usernames
+    usernames = [i.split(":")[0] for i in users_split]
+
+    # Join the usernames with a comma
+    commaed = ", ".join(usernames)
+
+    print commaed  # Results in admin, chrome, emacs
+
+    # I cannot speel
+    cantspell = "Faaling, Paaling, Faat, Graat, Laaks"
+
+    # You can replace substrings within strings
+    canspell = cantspell.replace("aa", "ee")
+
+    print canspell  # Results in Feeling, Peeling, Feet, Greet, Leeks
+
+    # You can call methods directly on strings as well
+    print "shout".upper()  # Results in SHOUT
+
+if __name__ == "__main__":
+    main()
+```
+
+Here are some encodings and transformations that might be useful:
+
+```python
+#!/usr/bin/python
+
+def main():
+    sample_number = 65
+
+    # We can get binary representations for a number
+    print bin(sample_number)  # Results in 0b1000001
+
+    # We can also get hex representations for a number:
+    print hex(sample_number)  # Results in 0x41
+
+    # Also, octal:
+    print oct(sample_number)  # Results in 0101
+
+    sample_text = "ABCD"
+
+    # Often, we want to convert a string into hex for reason that will be more
+    # apparent as you progress further up in CTFs
+
+    print sample_text.encode("hex")  # Results in 41424344
+
+    # Conversely, we can also decode from a hex string
+
+    print "41424344".decode("hex")  # Results in ABCD
+
+    # There are other useful codecs as well:
+
+    print "SGVsbG8=".decode("base64")  # Results in Hello
+    print "Obawbhe".decode("rot13")  # Results in Bonjour
 
 
-- String and List Operations
-- Functions
+if __name__ == "__main__":
+    main()
+```
+
+#### Functions
+
+Finally, we come to functions which allow you to organise your program a lot
+better.
+
+```python
+#!/usr/bin/python
+
+def alone():
+    print "I am alone."
+
+def feed(food):
+    print "I am fed", food
+
+def add(a, b):
+    return a + b
+
+def main():
+    # We can call a function with no parameters
+    alone()
+
+    # Or we can call it with a parameter
+    feed("tacos")
+
+    # Functions can be nested
+    print add(add(1, 2), 3)
+
+if __name__ == "__main__":
+    main()
+```
 
 ### Important Modules
 
@@ -426,6 +616,8 @@ Please do not worry if the following is hard to follow:
 - struct
 - base64
 - subprocess
+- random
+- socket
 
 ## 3. Input/Output
 
@@ -497,5 +689,5 @@ Briefly and not in depth
 
 - Stack Canaries
 - ASLR
-- NX 
+- NX
 
