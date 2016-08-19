@@ -10,7 +10,7 @@ COPY ./readservice /etc/xinetd.d/readservice
 COPY ./art /home/$user/art
 RUN chown -R root:$user /home/$user
 RUN chmod -R 750 /home/$user
-RUN chown root:$user /home/$user/flag
-RUN chmod 440 /home/$user/flag
+RUN chown root:$user /flag
+RUN chmod 440 /flag
 EXPOSE 31337
 CMD ["/usr/sbin/xinetd", "-d"]
