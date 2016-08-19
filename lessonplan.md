@@ -1123,6 +1123,14 @@ While Denial of Service attacks can be caused by congestion of network
 resources, we focus more on the vulnerabilties that exist inherently in the
 application logic.
 
+The most common denial of service conditions come from the program behind the
+service crashing due to an exception such a segmentation fault. Another possible
+reason why a service might not be responsive is because a particular resource
+(such as memory) might be exhausted. This is evident when people launch fork
+bombs in a shell.
+
+
+
 ### Information Leakage
 
 
