@@ -19,7 +19,9 @@ int main(int argc, char *argv[]) {
     scanf("%255s", user_pass);
     if (check(user_pass, "ThisIsALongPassword")) {
         printf("Win!\n");
-        system("id");
+        setgid(getegid());
+        setuid(geteuid());
+        system("/bin/sh");
     }
     else {
         printf("Fail!\n");
