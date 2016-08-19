@@ -1052,7 +1052,52 @@ elliot@ctf101-shell:~/ctf101$
 Often, when you play in a CTF, the challenge description might contain something
 like `nc pwn.spro.ink 1337`. Why not try it out?
 
+```bash
+elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1337
+What is your name? Elliot Alderson
+Welcome Elliot Alderson, here's your flag: ctf101{1st_Fl4g_0f_th3_d4y!}
+elliot@ctf101-shell:~/ctf101$
+```
 
+We can script this in python as well.
+
+```python
+#!/usr/bin/python
+
+import socket
+
+def main():
+    # Create a socket
+    sock = socket.socket()
+
+    # Connect the socket to the remote service
+    sock.connect(("pwn.spro.ink", 1337))
+
+    # Receive the first prompt
+    prompt = sock.recv(1024)  # Receive an arbitrary max 1024 bytes
+    print prompt
+
+    # Send our name
+    sock.send("Elliot Alderson\n")  # Remember the newline at the end
+
+    # Receive the flag
+    flagline = sock.recv(1024)
+
+    print flagline
+
+if __name__ == "__main__":
+    main()
+```
+
+Running the script:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ python sockets.py
+What is your name?
+Welcome Elliot Alderson, here's your flag: ctf101{1st_Fl4g_0f_th3_d4y!}
+
+elliot@ctf101-shell:~/ctf101$
+```
 
 ## 4. Types of Compromise
 

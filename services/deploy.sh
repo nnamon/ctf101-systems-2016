@@ -6,8 +6,11 @@ docker stop $(docker ps -a -q)
 # Remove all containers
 docker rm $(docker ps -a -q)
 
-# Build everything
-for i in `ls */dockerbuild.sh`; do sh $i; done
+# Build and run everything
+for i in `ls -d */`; do
+    cd $i
+    ./dockerbuild.sh
+    ./dockerrun.sh
+    cd ..
+done
 
-# Run everything
-for i in `ls */dockerrun.sh`; do sh $i; done
