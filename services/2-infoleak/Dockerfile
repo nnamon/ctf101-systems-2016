@@ -6,7 +6,7 @@ RUN useradd -m $user
 RUN echo "$user     hard    nproc       20" >> /etc/security/limits.conf
 COPY ./infoleak.py /home/$user/infoleak.py
 COPY ./flag /home/$user/flag
-COPY ./nameservice /etc/xinetd.d/nameservice
+COPY ./infoleakservice /etc/xinetd.d/infoleakservice
 RUN chown -R root:$user /home/$user
 RUN chmod -R 750 /home/$user
 RUN chown root:$user /home/$user/flag
