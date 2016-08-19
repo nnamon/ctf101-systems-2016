@@ -14,8 +14,7 @@ RUN chmod -R 750 /home/$user
 RUN chmod o+rx /home/$user
 RUN chown root:$user /home/$user/flag
 RUN chmod 440 /home/$user/flag
-RUN chmod g+xs /home/$user/escalate
-RUN chmod o+rx /home/$user/escalate
+RUN chmod 2755 /home/$user/escalate
 EXPOSE 1342
 COPY entry.sh /entry.sh
 RUN mkdir -p ~root/.ssh && chmod 700 ~root/.ssh/ && \
