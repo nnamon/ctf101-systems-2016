@@ -1,3 +1,3 @@
 #!/bin/sh
 
-docker build -t whatsyourname .
+docker build -t egg .

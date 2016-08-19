@@ -1194,6 +1194,126 @@ access to the system to escalate their rights from a restricted user to root.
 
 ## 5. Illustration of Compromise in Target Python Applications
 
+To make it easier to visualise and internalise these compromise goals, let us go
+through a couple of examples in a high level script such as python where we try
+to compromise a couple of remote services (where applicable).
+
+### Denial of Service
+
+To demonstrate this scalably, everyone will run an instance of the server on
+their own shells. This means you should start up another terminal and log into
+your shell again so you can play both the attacker and the attacked.
+
+Please create the following python script:
+
+```python
+#!/usr/bin/python
+
+import socket
+
+def main():
+    HOST, PORT = "localhost", 0
+
+    # Create the server, binding to localhost on a free port
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind((HOST, PORT))
+    server.listen(10)
+
+    # Print the connection information
+    print "Please connect to %s %d" % (HOST, server.getsockname()[1])
+
+    # Activate the server; this will keep running until you
+    # interrupt the program with Ctrl-C
+    while True:
+        # Accept a connection
+        conn, addr = server.accept()
+
+        # Interact with the client
+        conn.sendall("Please enter the number you wish to square: ")
+
+        # Get the integer
+        data = conn.recv(1024)
+        number = int(data)
+
+        # Square it
+        square = number * number
+
+        # Print the number back to the client as a string
+        conn.sendall(str(square) + "\n")
+
+        # Close the connection
+        conn.close()
+
+if __name__ == "__main__":
+    main()
+```
+
+Run it in your newly created terminal, note the connection information and
+return to your first terminal.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ python denialofservice.py
+Please connect to localhost 43065
+
+```
+
+Try interacting with the server normally.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ nc localhost 43065
+Please enter the number you wish to square: 23
+529
+elliot@ctf101-shell:~/ctf101$
+```
+
+Do this a couple of times to convince yourself that the server will work for
+multiple people. Now, let us deny others the service by attempting to crash the
+script. What happens when we pass the server a letter instead of a number?
+
+```bash
+elliot@ctf101-shell:~/ctf101$ nc localhost 43065
+Please enter the number you wish to square: A
+elliot@ctf101-shell:~/ctf101$ nc -v localhost 43065
+nc: connect to localhost port 43065 (tcp) failed: Connection refused
+elliot@ctf101-shell:~/ctf101$
+```
+
+Looks like the server is no longer accepting connections. If we check the
+terminal where we ran the server we find that the script has terminated due to
+an exception:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ python denialofservice.py
+Please connect to localhost 43065
+Traceback (most recent call last):
+  File "denialofservice.py", line 39, in <module>
+    main()
+  File "denialofservice.py", line 27, in main
+    number = int(data)
+ValueError: invalid literal for int() with base 10: 'A\n'
+elliot@ctf101-shell:~/ctf101$
+```
+
+This is a straightforward exercise demonstrating how a crash caused by bad input
+by a user to the server has prevented other legitimate users from accessing the
+service.
+
+### Information Leakage
+
+
+### Arbitrary File Read
+
+
+### Arbitrary File Write
+
+
+### Remote Code Execution
+
+
+### Privilege Escalation
+
+
+
 ## 6. Data Representation and Endianness
 
 - Numbering Systems: Decimal, Binary, Hexadecimal
@@ -1244,9 +1364,21 @@ access to the system to escalate their rights from a restricted user to root.
 
 ## 14. Mitigations and Bypasses
 
-Briefly and not in depth
-
 - Stack Canaries
 - ASLR
 - NX
+
+## 15. Conclusion and Additional Challenges
+
+This section brings the workshop to an end. We hope it was adequate in giving
+you an introduction to the topics we covered and have sparked an interest in
+vulnerability analysis and exploit writing. Stay tuned for workshops that cover
+more advanced topics.
+
+If time permits, please do try the following challenges out to test your
+understanding of what we covered today and maybe explore a bit more on your own.
+
+### Challenge 1
+
+### Challenge 2
 
