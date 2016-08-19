@@ -46,6 +46,9 @@ It is hoped that by the end of the workshop, participants will have the required
 knowledge of the tools and skills needed to further progress onto more advanced
 topics in the reverse engineering and exploitation of systems applications.
 
+Please do refer to this lesson plan for all code snippets and references as the
+lesson progresses.
+
 ## 1. Overview of Systems Exploitation
 
 Systems security is an extremely large domain. Basically, anything that runs on
@@ -615,6 +618,7 @@ if __name__ == "__main__":
 
 Throughout the workshop, we will introduce important python modules as we
 require. Modules are external 'libraries' that we import for use in our scripts.
+We use the syntax `import <modulename>` to import a module.
 
 ## 3. Input/Output
 
@@ -683,7 +687,7 @@ elliot@ctf101-shell:~/myfiles$
 Now, let us consider the situation where you would like to programmatically
 compute the argument instead of giving the program a static argument each time.
 Perhaps, in this scenario you would like to rename the file to the md5 hash of
-its contents. We can employ the use of backticks in bash to achieve this.
+its contents. We can employ the use of backticks (`) in bash to achieve this.
 
 ```bash
 elliot@ctf101-shell:~/myfiles$ ls -la 'cool file'
@@ -699,7 +703,197 @@ drwxr-xr-x 4 elliot ctf101 4096 Aug 18 18:37 ..
 elliot@ctf101-shell:~/myfiles$
 ```
 
-### Stdin/Stdout/Stderr
+What if we want to execute a program through a python script? We can make use of
+either the `os` or `subprocess` modules to perform this. Let's take a look at
+the os module first:
+
+```python
+#!/usr/bin/python
+
+#import the os
+import os
+
+def main():
+    # We can run shell commands by using os.system('shell command')
+    # This is the equivalent of running sh -c '<your command here>' so things
+    # like pipes, redirects, semicolons work.
+
+    # /usb/bin/md5sum is the program to execute
+    # /etc/issue.net is the first argument to the program
+    os.system("/usr/bin/md5sum /etc/issue.net")
+
+    # Let's demonstrate that the features of the shell is available to us.
+    os.system("echo 'Hello, Friend' > badfile; cat badfile")
+
+if __name__ == "__main__":
+    main()
+```
+
+The `os.system()` function is basically a wrapper to run shell commands. There
+is a big distinction to running a program within a shell and without as we will
+see when we use the subprocess module instead. Running the program yields:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ python argumentsos.py
+f0ee0388ebfa8223e795491cb38a3081  /etc/issue.net
+Hello, Friend
+```
+
+Checking that the file indeed exists within the current directory now:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ ls -la badfile
+total 20
+-rw-r--r-- 1 elliot ctf101   14 Aug 19 06:38 badfile
+elliot@ctf101-shell:~/ctf101$
+```
+
+Now, let us use the `subprocess` module.
+
+```python
+#!/usr/bin/python
+
+# import the subprocess module
+import subprocess
+
+def main():
+    # With subprocess, you no longer have a shell environment since the program
+    # is called directly instead of your commands being wrapped for execution
+    # in a shell. The subprocess.call() function takes a list of strings where
+    # the first string is the path to the program to execute and the following
+    # strings the arguments to the program.
+
+    # /usb/bin/md5sum is the program to execute
+    # /etc/issue.net is the first argument to the program
+    subprocess.call(["/usr/bin/md5sum", "/etc/issue.net"])
+
+
+if __name__ == "__main__":
+    main()
+```
+
+The special symbols that meant various things within the shell such as pipes,
+backticks, redirections now are just passed directly to the program instead of
+interpreted by the shell and will do nothing. Executing the python script:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ python argumentsubprocess.py
+f0ee0388ebfa8223e795491cb38a3081  /etc/issue.net
+```
+### Standard Streams
+
+Another method of interacting with the user is through the standard streams:
+`stdin`, `stdout`, and `stderr`. The stdin and stdout stream should be familiar
+to you. Reading from `stdin` gets the input the user provides and writing to
+`stdout` prints information back to the user. `stderr` provides a means for
+programs to output debugging or error information without polluting the `stdout`
+stream.
+
+Remember the python interpreter we interacted with?
+
+```bash
+elliot@ctf101-shell:~/ctf101$ python
+Python 2.7.12 (default, Jul  1 2016, 15:12:24)
+[GCC 5.4.0 20160609] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+>>> "this is me sending data to the python program through stdin"
+'this is me sending data to the python program through stdin'
+>>>
+```
+
+We 'send' data through `stdin` to the program by typing in our shell and in turn
+the program 'sends' data through `stdout` to us by printing it in our shell.
+
+What about `stderr`? Error messages such as the following are written to
+`stderr`:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ ls -la /root
+ls: cannot open directory '/root': Permission denied
+```
+
+How do you tell? First, we have to introduce the concept of pipes and stream
+redirection. Often you would like for programs to interact with each other. You
+have seen examples of this in some of the previous code snippets. Imagine
+running a program and getting some output:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ python -c 'print "A"*24'
+AAAAAAAAAAAAAAAAAAAAAAAA
+elliot@ctf101-shell:~/ctf101$
+```
+
+Now, we could copy the output by hand manually and paste it into another program
+as a way to transfer this information. However, there is a better way. We can
+join the `stdout` of the `python` program to the `stdin` of another program, say
+`base64`. This is called 'piping' the output of our first program into the input
+of a second program. The special symbol we use to do this is called the 'pipe'
+(|).
+
+```bash
+elliot@ctf101-shell:~/ctf101$ python -c 'print "A"*24' | base64
+QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBCg==
+elliot@ctf101-shell:~/ctf101$
+```
+
+We can even chain more pipes to connect the output of `base64` to `md5sum`.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ python -c 'print "A"*24' | base64 | md5sum
+2aafa255bcb4d626dba2804faf55a16a  -
+elliot@ctf101-shell:~/ctf101$
+```
+
+What if we want to redirect the output of a stream to another stream? We can do
+this by using stream redirection. Going back to the `stderr` example, we can
+make the output disappear by redirecting what comes out on `stderr` to the
+special `/dev/null` device that ignores what is fed into it.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ ls -la /root
+ls: cannot open directory '/root': Permission denied
+elliot@ctf101-shell:~/ctf101$ ls -la /root 2>/dev/null
+elliot@ctf101-shell:~/ctf101$ ls -la /root 1>/dev/null
+ls: cannot open directory '/root': Permission denied
+```
+
+Take note that the streams are given file descriptor numbers. 0 is `stdin`, 1 is
+`stdout`, and 2 is `stderr`. So when we do `2>/dev/null` it makes the `stderr`
+output go into the `/dev/null` device and disappear. Let us look at an example
+with `grep`.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ echo "hello world" | grep -c hello
+1
+elliot@ctf101-shell:~/ctf101$ echo "hello world" | grep -c goodbye
+0
+elliot@ctf101-shell:~/ctf101$
+```
+
+`grep` is a program that searches the input for the the string given in the
+argument and if it matches, it outputs the number of matched occurences (due to
+us applying the `-c` argument). Let us try this out on the `stderr` example.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ ls -la /root
+ls: cannot open directory '/root': Permission denied
+elliot@ctf101-shell:~/ctf101$ ls -la /root | grep -c denied
+ls: cannot open directory '/root': Permission denied
+0
+elliot@ctf101-shell:~/ctf101$
+```
+
+Notice that the error message is still printed out and the word denied is not
+matched. If we redirect `stderr` to `stdout`, and grep for the word, it changes.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ ls -la /root 2>&1 | grep -c denied
+1
+elliot@ctf101-shell:~/ctf101$
+```
+
+Note that `&1` refers to the file descriptor 1 which is `stdout`.
+
 ### Files
 ### Sockets
 
