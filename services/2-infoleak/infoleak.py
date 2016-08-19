@@ -2,7 +2,7 @@
 
 import sys
 
-FLAG = open("/home/infoleak/flag")
+FLAG = open("/home/infoleak/flag").read()
 PUBLIC_DATA = "RainRainGoAwayComeAgainAnotherDay"
 
 def write(data):
