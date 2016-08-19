@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     scanf("%255s", user_pass);
     if (check(user_pass, "ThisIsALongPassword")) {
         printf("Win!\n");
-        execl("/bin/cat", "/bin/cat", "flag", NULL);
+        execl("/bin/sh", "/bin/sh", "-p", NULL);
     }
     else {
         printf("Fail!\n");
