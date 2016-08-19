@@ -894,8 +894,165 @@ elliot@ctf101-shell:~/ctf101$
 
 Note that `&1` refers to the file descriptor 1 which is `stdout`.
 
+Remember our explorations with calling programs with python in the previous
+section? What if we want to interact with our programs from that? The answer is
+obviously manipulating these streams.
+
+```python
+#!/usr/bin/python
+
+import subprocess
+
+def main():
+    # Let's try and emulate echo "hello" | base64
+
+    # We can't use the old method of subprocess.call anymore. We would have to
+    # deal a little closer to the metal with subprocess.Popen.
+
+    # Note the way we instantiate the object. We have to let the constructor
+    # know that we want to interact with the stdin and stdout streams otherwise
+    # it would go to the shell instead of our script.
+    process = subprocess.Popen("/usr/bin/base64",
+                               stdin=subprocess.PIPE,
+                               stdout=subprocess.PIPE)
+
+    # We need to write hello into the process' stdin stream
+    process.stdin.write("hello")
+
+    # Close the stream to let the program know we're done
+    process.stdin.close()
+
+    # We can now retrieve the output from stdout
+    output = process.stdout.read()
+
+    # Finally, let's print the output
+    print output
+
+if __name__ == "__main__":
+    main()
+```
+
+Running the application:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ python streams.py
+aGVsbG8=
+
+elliot@ctf101-shell:~/ctf101$
+```
+
 ### Files
+
+Some programs take filenames as arguments. The simplest of them is the `cat`
+command which reads the file and prints the file contents to `stdout`.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ cat /etc/issue.net
+Ubuntu 16.04.1 LTS
+elliot@ctf101-shell:~/ctf101$
+```
+
+With bash, you can also redirect the output of program to a file with the `>`
+symbol.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ echo "Contents of this file" > thisfile
+elliot@ctf101-shell:~/ctf101$ cat thisfile
+Contents of this file
+elliot@ctf101-shell:~/ctf101$
+```
+
+You can also read files into the `stdin` of a program with the opposite symbol
+`<`.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ base64 < thisfile
+Q29udGVudHMgb2YgdGhpcyBmaWxlCg==
+elliot@ctf101-shell:~/ctf101$
+```
+
+In python, you can create, write to, and read from files as well.
+
+```python
+#!/usr/bin/python
+
+def main():
+    # Let's create a file
+    towrite = open("my_file", "w")  # 'w' stands for open for write
+
+    # Now, we can write a string into it
+    towrite.write("some string")
+
+    # Close the file
+    towrite.close()
+
+    # We can do the converse option by reading the file
+    toread = open("my_file")  # implicitly open for read
+
+    # Read the contents
+    contents = toread.read()
+    print contents
+
+    # Close the file
+    toread.close()
+
+if __name__ == "__main__":
+    main()
+```
+
+Running the script:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ python files.py
+some string
+elliot@ctf101-shell:~/ctf101$
+```
+
 ### Sockets
+
+The majority of the exercises we will be going through involve interacting with
+a service hosted on a different system. That is, we will be looking at obtaining
+access to a remote system. First, we need to learn how to even begin connecting
+to such a remote service. Netcat is an extremely useful command line tool that
+lets you create arbitrary TCP or UDP sockets.
+
+Obviously we know that web pages are served over the network but can we manually
+obtain the home page of http://codesinverse.com? We can with netcat!
+
+```bash
+elliot@ctf101-shell:~/ctf101$ nc codesinverse.com 80
+GET / HTTP/1.0
+
+HTTP/1.1 200 OK
+Date: Fri, 19 Aug 2016 11:20:30 GMT
+Server: Apache/2.2.14 (Ubuntu)
+Last-Modified: Sun, 27 Oct 2013 11:52:27 GMT
+ETag: "3d01208-ed-4e9b79e1054c0"
+Accept-Ranges: bytes
+Content-Length: 237
+Vary: Accept-Encoding
+Connection: close
+Content-Type: text/html
+
+<head>
+  <title>Codes^-1</title>
+</head>
+<body>
+  <br />
+  <br />
+  <br />
+  <div align="center">
+    <h1>Q29kZXNpbnZlcnNlIGlzIHVuZGVyIGNvbnN0cnVjdGlvbiE=</h1>
+    <h2>Smoke me a kipper, I'll be back for breakfast.</h2>
+  </div>
+</body>
+elliot@ctf101-shell:~/ctf101$
+```
+
+Often, when you play in a CTF, the challenge description might contain something
+like `nc pwn.spro.ink 1337`. Why not try it out?
+
+
 
 ## 4. Types of Compromise
 
