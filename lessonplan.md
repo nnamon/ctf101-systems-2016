@@ -1113,6 +1113,7 @@ attacker include the following (in ascending order of severity and control):
 3. Arbitrary File Read
 4. Arbitrary File Write
 5. Remote Code Execution
+6. Privilege Escalation
 
 ### Denial of Service
 
@@ -1129,19 +1130,67 @@ reason why a service might not be responsive is because a particular resource
 (such as memory) might be exhausted. This is evident when people launch fork
 bombs in a shell.
 
-
-
 ### Information Leakage
 
+An information leak (infoleak, for short) is a vulnerability that, when
+exploited, reveals privileged information about the system or application to an
+attacker. The effects of this information being in the control of an attacker
+can be varying. Information an attack might be interested in include:
+
+- Password Hashes
+- Source Code
+- Binaries
+- Pointers and Addresses
+- libc Shared Object
+
+While infoleaks are not typically dangerous by themselves, they are used in
+conjunction with another vulnerability to obtain more control over a system. We
+distinguish this class with 'Arbitrary File Read' by restricting ourselves to
+application specific features such as pointers that may exist in memory.
 
 ### Arbitrary File Read
 
+Arbitrary file read vulnerabilities allow the attacker to retrieve any file that
+the owner of the service has access to. The severity of an arbitrary file read
+vulnerability varies based on the type of information granted to the attacker.
+If SSH keys are left lying around, this vulnerability may as well be a remote
+code execution one.
 
 ### Arbitrary File Write
 
+Arbitrary file write vulnerabilties allow an attacker to create/overwrite files
+on the file system with controlled content. Now, this is dangerous on multiple
+levels. If the application is privileged and is capable of overwriting system
+files such as /etc/shadow, /etc/passwd or even a user file such as
+~/.ssh/authorized\_keys, an attacker may grant themselves access over SSH. If
+the application is not privileged, but has write access to their own
+directories, an attacker may insert content to perform arbitrary code execution.
+
+An example of arbitrary code execution often appears when exploiting PHP web
+applications where arbitrary PHP code is written to the file system and
+triggered by the attacker when they surf to the location of the newly created
+file.
 
 ### Remote Code Execution
 
+Certain vulnerabilities grant arbitrary code execution which allows an attacker
+to coerce the system into performing any operation she wishes. This may manifest
+as a result of injection of evaluated data such as shell commands or scripts, or
+on a more fundamental level such as taking control of the instruction pointer to
+execute your own machine code. Arbitrary code execution is very closely tied to
+privilege escalation where hijacking the control flow of a binary with
+privileged access results in granting these privileges to the attacker.
+
+### Privilege Escalation
+
+Privilege escalation vulnerabilities can exist in multiple forms and are not
+necessarily arbitrary code execution bugs. They often are though. These
+vulnerabilties, when exploited result in the attacker obtaining higher level
+rights such as administrator or root.
+
+At a more advanced level, there exists vulnerabilities within the kernel of the
+operating system. These vulnerabilities usually allow an attacker with local
+access to the system to escalate their rights from a restricted user to root.
 
 ## 5. Illustration of Compromise in Target Python Applications
 
