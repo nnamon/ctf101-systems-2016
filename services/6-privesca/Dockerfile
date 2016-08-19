@@ -1,7 +1,7 @@
 FROM ubuntu:latest
 ENV user=privesca
 RUN apt-get update
-RUN apt-get install -y openssh-server ksh
+RUN apt-get install -y openssh-server python
 RUN useradd -m $user
 RUN useradd -d /home/$user/ -M escalate
 RUN echo "escalate:escalate" | chpasswd
