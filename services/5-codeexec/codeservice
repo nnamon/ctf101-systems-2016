@@ -1,0 +1,13 @@
+service codeservice
+{
+    disable = no
+    socket_type = stream
+    protocol    = tcp
+    wait        = no
+    user        = codeexec
+    bind        = 0.0.0.0
+    server      = /home/codeexec/codeexec.py
+    type        = UNLISTED
+    port        = 31337
+}
+
