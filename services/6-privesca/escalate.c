@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     if (check(user_pass, "ThisIsALongPassword")) {
         printf("Win!\n");
         setegid(1000);
-        system("/bin/sh");
+        system("cat flag");
     }
     else {
         printf("Fail!\n");
