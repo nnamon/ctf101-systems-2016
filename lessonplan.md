@@ -627,6 +627,14 @@ mechanisms give us this means of interaction and often, I/O sources are the very
 first place to look at when trying to figure out how to cause a crash from user
 supplied input.
 
+We will look at the following sources of I/O:
+
+1. Arguments
+2. Standard Streams
+3. Files
+4. Sockets
+5. Environment Variables
+
 ### Arguments
 
 The first way a program may take input is through its arguments. Let us use the
@@ -1102,6 +1110,56 @@ elliot@ctf101-shell:~/ctf101$
 That covers most of what you need to know about input/output for today. Let us
 move on to the actual security stuff from this point on.
 
+### Environment Variables
+
+Environment variables are a set of key-value pairs that can affect the way
+programs run. They form the dynamic environment a process runs in. We can dump
+the existing environment variables by using the `env` command.
+
+```
+elliot@ctf101-shell:~/ctf101$ env
+LC_PAPER=en_SG.UTF-8
+LC_ADDRESS=en_SG.UTF-8
+XDG_SESSION_ID=5
+LC_MONETARY=en_SG.UTF-8
+SHELL=/bin/bash
+TERM=xterm-256color
+SSH_TTY=/dev/pts/1
+USER=elliot
+LC_TELEPHONE=en_SG.UTF-8
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+MAIL=/var/mail/elliot
+LC_IDENTIFICATION=en_SG.UTF-8
+PWD=/home/elliot/ctf101
+LANG=en_US.UTF-8
+LC_MEASUREMENT=en_SG.UTF-8
+HOME=/home/elliot
+LOGNAME=elliot
+SSH_CONNECTION=58.182.72.227 46670 128.199.201.65 22
+LESSOPEN=| /usr/bin/lesspipe %s
+XDG_RUNTIME_DIR=/run/user/0
+LC_TIME=en_SG.UTF-8
+LESSCLOSE=/usr/bin/lesspipe %s %s
+LC_NAME=en_SG.UTF-8
+_=/usr/bin/env
+OLDPWD=/home/elliot
+elliot@ctf101-shell:~/ctf101$
+```
+
+Some programs access the environment variables and modify their behaviour based
+on what is available.
+
+We can set environment variables temporarily for the duration of the terminal
+session by using `export`. We can expand environment variables in the shell by
+prefixing `$`.
+
+```bash
+elliot@ctf101-shell:~/ctf101$ export MYFLAG=mrrobot
+elliot@ctf101-shell:~/ctf101$ echo $MYFLAG
+mrrobot
+elliot@ctf101-shell:~/ctf101$
+```
+
 ## 4. Types of Compromise
 
 Keep in mind that we are still dealing with extremely high level and abstract
@@ -1392,6 +1450,7 @@ elliot@ctf101-shell:~/ctf101$
 ```
 
 ### Arbitrary File Read
+
 
 
 ### Arbitrary File Write
