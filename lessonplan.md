@@ -1099,13 +1099,41 @@ Welcome Elliot Alderson, here's your flag: ctf101{1st_Fl4g_0f_th3_d4y!}
 elliot@ctf101-shell:~/ctf101$
 ```
 
+That covers most of what you need to know about input/output for today. Let us
+move on to the actual security stuff from this point on.
+
 ## 4. Types of Compromise
 
-- Denial of Service
-- Information Leakage
-- Arbitrary Read
-- Arbitrary Write
-- Remote Command Execution
+Keep in mind that we are still dealing with extremely high level and abstract
+concepts at this point of the workshop. Some of the high level goals of an
+attacker include the following (in ascending order of severity and control):
+
+1. Denial of Service
+2. Information Leakage
+3. Arbitrary File Read
+4. Arbitrary File Write
+5. Remote Code Execution
+
+### Denial of Service
+
+Denial of Service vulnerabilities are broad and can be categorised as
+destructive or non-destructive. The common theme between them is that they
+obstruct and prevent legitimate users from accessing a service or resource.
+While Denial of Service attacks can be caused by congestion of network
+resources, we focus more on the vulnerabilties that exist inherently in the
+application logic.
+
+### Information Leakage
+
+
+### Arbitrary File Read
+
+
+### Arbitrary File Write
+
+
+### Remote Code Execution
+
 
 ## 5. Illustration of Compromise in Target Python Applications
 
@@ -1148,6 +1176,7 @@ elliot@ctf101-shell:~/ctf101$
 - Crash Analysis
 
 ## 12. Memory Corruption Vulnerabilities
+
 
 ## 13. Other Vulnerabilities
 
