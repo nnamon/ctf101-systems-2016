@@ -19,8 +19,7 @@ int main(int argc, char *argv[]) {
     scanf("%255s", user_pass);
     if (check(user_pass, "ThisIsALongPassword")) {
         printf("Win!\n");
-        setegid(1000);
-        system("cat flag");
+        system("id");
     }
     else {
         printf("Fail!\n");
