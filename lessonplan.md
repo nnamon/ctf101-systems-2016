@@ -1107,9 +1107,6 @@ Welcome Elliot Alderson, here's your flag: ctf101{1st_Fl4g_0f_th3_d4y!}
 elliot@ctf101-shell:~/ctf101$
 ```
 
-That covers most of what you need to know about input/output for today. Let us
-move on to the actual security stuff from this point on.
-
 ### Environment Variables
 
 Environment variables are a set of key-value pairs that can affect the way
@@ -1159,6 +1156,10 @@ elliot@ctf101-shell:~/ctf101$ echo $MYFLAG
 mrrobot
 elliot@ctf101-shell:~/ctf101$
 ```
+
+That covers most of what you need to know about input/output for today. Let us
+move on to the actual security stuff from this point on.
+
 
 ## 4. Types of Compromise
 
