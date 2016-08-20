@@ -43,7 +43,7 @@ def main():
                                          "passwd", "-1", password]).strip()
 
     parameters = ["/usr/sbin/useradd", "-s", "/bin/bash", "-m", "-g",
-                  "ctf101", "-p", cryptpass, username]
+                  "ctfusers", "-p", cryptpass, username]
     subprocess.call(parameters)
     subprocess.call(["/usr/sbin/edquota", "-p", "quotaproto", username])
 

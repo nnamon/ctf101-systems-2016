@@ -1915,6 +1915,8 @@ $
 
 ### Privilege Escalation
 
+For the last category, let's try something different. Here's a little taster as
+an introduction to the later sections.
 
 ```c
 #include <stdio.h>
