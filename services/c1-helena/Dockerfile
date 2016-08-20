@@ -1,12 +1,12 @@
 FROM ubuntu:latest
-ENV user=infoleak
+ENV user=helena
 RUN apt-get update
-RUN apt-get install -y xinetd python
+RUN apt-get install -y xinetd
 RUN useradd -m $user
 RUN echo "$user     hard    nproc       20" >> /etc/security/limits.conf
-COPY ./infoleak.py /home/$user/infoleak.py
+COPY ./helena /home/$user/helena
 COPY ./flag /home/$user/flag
-COPY ./infoleakservice /etc/xinetd.d/infoleakservice
+COPY ./helenaservice /etc/xinetd.d/helenaservice
 RUN chown -R root:$user /home/$user
 RUN chmod -R 750 /home/$user
 RUN chown root:$user /home/$user/flag

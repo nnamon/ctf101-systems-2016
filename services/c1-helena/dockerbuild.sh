@@ -1,3 +1,3 @@
 #!/bin/sh
 
-docker build -t infoleak .
+docker build -t helena .

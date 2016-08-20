@@ -4,27 +4,25 @@ ctf101 systems security repository. Day two of the workshop.
 
 ## Objective
 
-By the end of the workshop, participants should be aware of the skills and some 
-of the tools required to develop exploits for systems based applications. 
+By the end of the workshop, participants should be aware of the skills and some
+of the tools required to develop exploits for systems based applications.
 
 
 ## Syllabus
 
-1. Introduction to Systems Exploitation
+0. Approach
+1. Overview of Systems Exploitation
 2. Offensive Python 101
-3. Input/Output 
+3. Input/Output
 4. Types of Compromise
 5. Illustration of Compromise in Target Python Applications
-6. Data Representation and Endianness
-7. C and x86-64 Assembly
-8. Memory Layout
-9. Stack Frames
-10. Calling Conventions
-11. Debuggers
-12. Memory Corruption Vulnerabilities
-13. Other Vulnerabilities
-14. Mitigations and Bypasses
-
+6. C and x86-64 Assembly
+7. Memory Layout
+8. Stack Frames
+9. Debuggers
+10. Memory Corruption Vulnerabilities
+11. Mitigations and Bypasses
+12. Conclusions and Additional Challenges
 
 ## What Is Not Covered?
 
