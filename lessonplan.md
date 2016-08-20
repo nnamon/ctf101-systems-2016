@@ -2061,9 +2061,29 @@ the flag.
 
 ## 6. Data Representation and Endianness
 
-- Numbering Systems: Decimal, Binary, Hexadecimal
-- Data Representation: integers, word size, ascii, asciiz strings
-- Endianness
+### Numbering Systems 
+
+#### Decimal 
+
+First of all, let's examine the way we count in our daily lives. We count in
+sets of ten.
+
+#### Unary 
+
+Consider the simplest 
+
+#### Binary
+
+#### Octal
+
+#### Hexadecimal
+
+
+### Data Representation
+
+#### integers, word size, ascii, asciiz strings
+
+### Endianness
 
 ## 7. C and x86-64 Assembly
 
