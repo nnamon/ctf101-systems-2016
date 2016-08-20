@@ -1,0 +1,3 @@
+<?php
+    $snekfile = "snek.jpg";
+?>
