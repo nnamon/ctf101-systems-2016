@@ -2669,6 +2669,140 @@ Resist the urge to peek below for the answer and take a couple of moments to try
 and reverse engineer from the assembly.
 
 
+Done? Let's do a walkthrough. Running the binary:
+
+```console
+elliot@ctf101-shell:~/.../assembly$ ./3-babysimple
+Usage: ./babysimple <guess>
+elliot@ctf101-shell:~/.../assembly$ ./3-babysimple asd
+Wrong!
+elliot@ctf101-shell:~/.../assembly$ ./3-babysimple 123
+Wrong!
+elliot@ctf101-shell:~/.../assembly$
+```
+
+Okay, let's do our secret file magic!
+
+```console
+elliot@ctf101-shell:~/.../assembly$ file 3-babysimple
+3-babysimple: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically
+linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32,
+BuildID[sha1]=99fa6e724058dc95498fc1d4527e908b2ec2f927, not stripped
+elliot@ctf101-shell:~/.../assembly$
+```
+
+It's a simple unstripped 64 bit elf binary. Now for some strings magic!
+
+```console
+elliot@ctf101-shell:~/.../assembly$ strings 3-babysimple
+/lib64/ld-linux-x86-64.so.2
+nr@X
+libc.so.6
+puts
+strtoul
+__libc_start_main
+__gmon_start__
+GLIBC_2.2.5
+UH-H
+AWAVA
+AUATL
+[]A\A]A^A_
+Usage: ./babysimple <guess>
+Correct!
+Wrong!
+;*3$"
+GCC: (Ubuntu 5.2.1-22ubuntu2) 5.2.1 20151010
+...
+elliot@ctf101-shell:~/.../assembly$
+```
+
+Now, if we objdump the file to disassemble it, we can see that there's only
+the main function that's worth looking at:
+
+```console
+elliot@ctf101-shell:~/ctf101-systems-2016/lessonfiles/assembly
+$ objdump -d 3-babysimple
+
+3-babysimple:     file format elf64-x86-64
+
+0000000000400586 <main>:
+  400586:       55                      push   %rbp
+  400587:       48 89 e5                mov    %rsp,%rbp
+  40058a:       48 83 ec 20             sub    $0x20,%rsp
+  40058e:       89 7d ec                mov    %edi,-0x14(%rbp)
+  400591:       48 89 75 e0             mov    %rsi,-0x20(%rbp)
+  400595:       83 7d ec 01             cmpl   $0x1,-0x14(%rbp)
+  400599:       7f 11                   jg     4005ac <main+0x26>
+  40059b:       bf 84 06 40 00          mov    $0x400684,%edi
+  4005a0:       e8 ab fe ff ff          callq  400450 <puts@plt>
+  4005a5:       b8 01 00 00 00          mov    $0x1,%eax
+  4005aa:       eb 49                   jmp    4005f5 <main+0x6f>
+  4005ac:       48 8b 45 e0             mov    -0x20(%rbp),%rax
+  4005b0:       48 83 c0 08             add    $0x8,%rax
+  4005b4:       48 8b 00                mov    (%rax),%rax
+  4005b7:       ba 0a 00 00 00          mov    $0xa,%edx
+  4005bc:       be 00 00 00 00          mov    $0x0,%esi
+  4005c1:       48 89 c7                mov    %rax,%rdi
+  4005c4:       b8 00 00 00 00          mov    $0x0,%eax
+  4005c9:       e8 b2 fe ff ff          callq  400480 <strtoul@plt>
+  4005ce:       89 45 fc                mov    %eax,-0x4(%rbp)
+  4005d1:       81 7d fc ef be ad de    cmpl   $0xdeadbeef,-0x4(%rbp)
+  4005d8:       75 0c                   jne    4005e6 <main+0x60>
+  4005da:       bf a0 06 40 00          mov    $0x4006a0,%edi
+  4005df:       e8 6c fe ff ff          callq  400450 <puts@plt>
+  4005e4:       eb 0a                   jmp    4005f0 <main+0x6a>
+  4005e6:       bf a9 06 40 00          mov    $0x4006a9,%edi
+  4005eb:       e8 60 fe ff ff          callq  400450 <puts@plt>
+  4005f0:       b8 00 00 00 00          mov    $0x0,%eax
+  4005f5:       c9                      leaveq
+  4005f6:       c3                      retq
+  4005f7:       66 0f 1f 84 00 00 00    nopw   0x0(%rax,%rax,1)
+  4005fe:       00 00
+
+elliot@ctf101-shell:~/ctf101-systems-2016/lessonfiles/assembly$
+```
+
+We won't go into too much detail with assembly in this session so we'll just try
+to get a rough understanding without really dissecting the instructions. Notice
+the call to `strtoul`? It is the function to convert strings into unsigned
+longs. Let's take a closer look at this bit:
+
+```console
+  4005c9:       e8 b2 fe ff ff          callq  400480 <strtoul@plt>
+  4005ce:       89 45 fc                mov    %eax,-0x4(%rbp)
+  4005d1:       81 7d fc ef be ad de    cmpl   $0xdeadbeef,-0x4(%rbp)
+```
+
+Looks like it is converting the input into an unsigned long and then comparing
+that against a literal value of `0xdeadbeef`. Let's check what that is in
+decimal.
+
+```console
+elliot@ctf101-shell:~/.../assembly$ ipython
+Python 2.7.12 (default, Jul  1 2016, 15:12:24)
+Type "copyright", "credits" or "license" for more information.
+
+IPython 2.4.1 -- An enhanced Interactive Python.
+?         -> Introduction and overview of IPython's features.
+%quickref -> Quick reference.
+help      -> Python's own help system.
+object?   -> Details about 'object', use 'object??' for extra details.
+
+In [1]: 0xdeadbeef
+Out[1]: 3735928559
+
+In [2]:
+```
+
+Now we can check if this value will pass the constraints of the binary:
+
+```console
+elliot@ctf101-shell:~/.../assembly$ ./3-babysimple 3735928559
+Correct!
+elliot@ctf101-shell:~/.../assembly$
+```
+
+It does!
 
 ## 7. Memory Layout
 
