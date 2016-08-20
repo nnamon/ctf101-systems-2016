@@ -2860,16 +2860,86 @@ top of                                                            bottom of
 stack                                                                 stack
 ```
 
-Why is this important?
+Why is this important? It is because the properties of a stack makes it perfect
+to implement functions. When a function is called, a new context has to be
+created while that function is executed and destroyed when it ends. Managing
+this is not easy without a stack.
+
+To aid you in visualising this, let's introduce a simplisitic scenario:
+
+```python
+#!/usr/bin/python
+
+def c():
+    return
+
+def b():
+    c()
+
+def a():
+    b()
+
+def main():
+    a()
+
+if __name__ == "__main__":
+    main()
+```
+
+Imagine beginning execution in `main()`.
+
+```console
+<-------                                        [main()]
+```
+
+`a()` is called and a new context is pushed on the stack.
+
+```console
+<-------                                   [a()][main()]
+```
+
+`b()` is called and a new context is pushed on the stack.
+
+```console
+<-------                              [b()][a()][main()]
+```
+
+`c()` is called and a new context is pushed on the stack.
+
+```console
+<-------                         [c()][b()][a()][main()]
+```
+
+After this, `c()` returns and its context is destroyed by popping the stack.
+
+```console
+<-------                              [b()][a()][main()]
+```
+
+Likewise for `b()` and `a()` contexts when they return.
+
+```console
+<-------                              [b()][a()][main()]
+<-------                                   [a()][main()]
+<-------                                        [main()]
+```
+
+This concept is present in the way x86-64 programs handle functions.
 
 ## 8. Stack Frames
+
+We call these contexts 'stack frames'.
 
 - Saved RIP
 - Saved EBP
 
 ## 9. Debuggers
 
-- GDB
+GDB is a heavily used debugger in the linux world. It is indispensible when
+analysing binaries and figuring out where exactly vulnerabilities lie. The power
+of GDB comes from its ability to pick apart and step through a program while it
+is executing.
+
 - Inputs
 - Breakpoints
 - Examining Memory
@@ -2904,6 +2974,17 @@ int main() {
 }
 ```
 
+It is important to note the gcc arguments that I'm providing. `-m32` produces a
+32 bit binary (for the 1996 feel), and `-fno-stack-protector` disables the stack
+canary protection so that our buffer overflow attack can work without a separate
+information leak vulnerability.
+
+Try playing around with the binary for a moment locally on the shell first
+before attempting to attack `nc pwn.spro.ink 1343`. Explore on your own for a
+while before continuing on.
+
+
+
 ## 11. Mitigations and Bypasses
 
 To mitigate the scenario we have demonstrated, various protections have been
@@ -2916,7 +2997,8 @@ get shell immediately. Shellcode, or specially crafted machine code, has to be
 provided (usually as part of the extra space you had to use as padding) and
 executed to spawn the shell.
 
-This protection
+This protection heh if you read this far im going to finish this during the
+lunch break :(
 
 ### Stack Canaries
 ### ASLR
