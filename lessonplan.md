@@ -2850,7 +2850,7 @@ bottom of the stack.
 In x86-64, the stack starts at higher addresses and grows downwards as more
 items are pushed onto it. To visualise this:
 
-```
+```console
 bottom of                                                            top of
 memory                                                               memory
                 6            5       4    3     2     1     0
@@ -2859,6 +2859,8 @@ memory                                                               memory
 top of                                                            bottom of
 stack                                                                 stack
 ```
+
+Why is this important?
 
 ## 8. Stack Frames
 
@@ -2877,7 +2879,30 @@ stack                                                                 stack
 
 We are going to go all the way back to the 1996 to the publication of Phrack
 issue 49, when simple buffer overflow vulnerables ran rampant. Today we will
-cover the exploitation of the classic stack smashing scenario
+cover the exploitation of the classic stack smashing scenario.
+
+The binary we will target is running the following code:
+
+```c
+#include <stdio.h>
+
+// Compiled with gcc -m32 -fno-stack-protector -o gotshell gotshell.c
+
+void giveshell() {
+    system("/bin/sh");
+}
+
+void vuln() {
+    char buffer[80];
+    puts("Feed me"); // Print this
+    fflush(NULL); // Flush stdout
+    read(0, buffer, 200); // Read into the buffer
+}
+
+int main() {
+    vuln();
+}
+```
 
 ## 11. Mitigations and Bypasses
 
