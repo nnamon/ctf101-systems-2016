@@ -1,7 +1,8 @@
 FROM ubuntu:latest
 ENV user=gotshell
+RUN dpkg --add-architecture i386
 RUN apt-get update
-RUN apt-get install -y xinetd
+RUN apt-get install -y xinetd libc6:i386 libncurses5:i386 libstdc++6:i386
 RUN useradd -m $user
 RUN echo "$user     hard    nproc       20" >> /etc/security/limits.conf
 COPY ./gotshell /home/$user/gotshell
