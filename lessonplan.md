@@ -9,6 +9,11 @@ We assume that participants have the following pre-requisite knowledge:
 3. The tools and ability to ssh into their provided shell accounts given out the
 previous day
 
+## Slides
+
+Crappy accompanying slides available
+[here](https://docs.google.com/presentation/d/1MBsN-rllrAwz1QnqxUc0mfI9uDRYw4Y4O24qsohBtiM/pub?start=false&loop=false&delayms=60000).
+
 ## Topics to Cover
 
 0. Approach
@@ -2582,6 +2587,27 @@ that is being manipulated.
 There are sigils involved as well, registers are prefixed with % and constant
 numbers are prefixed with $.
 
+The three letter things like %rbp, %rax, %rdi are called registers. They can
+contain a 64 bit value. Some of these registers are general purpose and some
+have specific purposes.
+
+Here is a list of general purpose registers:
+
+1. Accumulator register (rax). Used in arithmetic operations.
+2. Counter register (rcx). Used in shift/rotate instructions and loops.
+3. Data register (rdx). Used in arithmetic operations and I/O operations.
+4. Base register (rbx). Used as a pointer to data
+5. Stack Pointer register (rsp). Pointer to the top of the stack.
+6. Stack Base Pointer register (rbp). Used to point to the base of the stack.
+7. Source Index register (rsi). Used as a pointer to a source in stream
+operations.
+8. Destination Index register (rdi). Used as a pointer to a destination in
+stream operations.
+
+And there also exists a register called the instruction pointer (or rip) that
+contains the address of the next instruction to be executed. This is an
+extremely important register we seek to exert control over.
+
 Now, contrast the above with something in Intel syntax:
 
 ```console
@@ -2664,7 +2690,7 @@ Of course, there are also non-conditional branching instructions.
 ### Baby Simple Exercise
 
 Without referring to the source code, can you figure out how to get the
-`babysimple` (binary)[./lessonfiles/assembly/3-babysimple] to print "Correct!"?
+`babysimple` [binary](./lessonfiles/assembly/3-babysimple) to print "Correct!"?
 Resist the urge to peek below for the answer and take a couple of moments to try
 and reverse engineer from the assembly.
 
@@ -2806,9 +2832,33 @@ It does!
 
 ## 7. Memory Layout
 
-- Stack and Heap
-- Variables - stack variables, dynamically allocated variables and static
-  variables
+For our purposes, we will not go in depth into memory layouts and other memory
+management topics because that subject is comprehensive enough to have its own
+course. Today we will only be looking at the stack.
+
+If you aren't familiar with the computer science term, a stack is an abstract
+data type that has the property of 'last in first out'. There are two
+operations: PUSH and POP. When you PUSH an item it sits on top of the item
+before it. When you POP from the stack, it removes the last item PUSHED on the
+stack.
+
+The stack in our programs is a contiguous region of memory that contains data
+used during execution. The stack pointer (rsp) points to the current top of the
+stack while a frame pointer (rbp), also known as the base pointer, points to the
+bottom of the stack.
+
+In x86-64, the stack starts at higher addresses and grows downwards as more
+items are pushed onto it. To visualise this:
+
+```
+bottom of                                                            top of
+memory                                                               memory
+                6            5       4    3     2     1     0
+<------   [            ][        ][    ][    ][    ][    ][    ]
+
+top of                                                            bottom of
+stack                                                                 stack
+```
 
 ## 8. Stack Frames
 
@@ -2820,17 +2870,31 @@ It does!
 - GDB
 - Inputs
 - Breakpoints
-- Examining and modifying context
+- Examining Memory
 - Crash Analysis
 
 ## 10. Memory Corruption Vulnerabilities
 
+We are going to go all the way back to the 1996 to the publication of Phrack
+issue 49, when simple buffer overflow vulnerables ran rampant. Today we will
+cover the exploitation of the classic stack smashing scenario
 
 ## 11. Mitigations and Bypasses
 
-- Stack Canaries
-- ASLR
-- NX
+To mitigate the scenario we have demonstrated, various protections have been
+developed. We'll just lightly touch on them to introduce the concepts to you.
+
+### No Exec
+
+Typically in real life software, you do not get a nice address to jump to and
+get shell immediately. Shellcode, or specially crafted machine code, has to be
+provided (usually as part of the extra space you had to use as padding) and
+executed to spawn the shell.
+
+This protection
+
+### Stack Canaries
+### ASLR
 
 ## 13. Conclusion and Additional Challenges
 
@@ -2844,5 +2908,42 @@ understanding of what we covered today and maybe explore a bit more on your own.
 
 ### Challenge 1
 
+Can you try and get shell on this vulnerable app?
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+struct streamer {
+    char name[40];
+    char cmd[10];
+};
+
+int main() {
+    struct streamer *helena = (struct streamer*) malloc(sizeof(struct streamer));
+    strcpy(helena->name, "Helena");
+    strcpy(helena->cmd, "id");
+    printf("I am %s, and my command is %s.\n", helena->name, helena->cmd);
+    free(helena);
+
+    struct streamer *guest = (struct streamer*) malloc(sizeof(struct streamer));
+    printf("Welcome guest streamer! My command is the best, you have it too!\n");
+    strcpy(guest->cmd, helena->cmd);
+    printf("What is your name: ");
+    gets(guest->name);
+    printf("Hello, %s!\n", guest->name);
+
+    printf("I'm going to execute my command now, because I'm cool.\n");
+    system(helena->cmd);
+    return 0;
+}
+```
+
+Please connect to `nc pwn.spro.ink 4241`. Try sending some input. Interactivity
+is a little broken because of buffering but it still works.
+
 ### Challenge 2
 
+Try pwning [this](./services/c2-warmup/warmup1) without any source code!
+
+It's running at `nc pwn.spro.ink 4242`.
