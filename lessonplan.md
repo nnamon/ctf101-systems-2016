@@ -2924,14 +2924,103 @@ Likewise for `b()` and `a()` contexts when they return.
 <-------                                        [main()]
 ```
 
-This concept is present in the way x86-64 programs handle functions.
+This concept is present in the way x86-64 programs handle functions. In the next
+section, we discuss this.
 
 ## 8. Stack Frames
 
-We call these contexts 'stack frames'.
+In the previous section, we saw how the a stack allows for functions to
+segregate contexts and manage the order of execution. In this section, we will
+look at exactly how this happens in x86-64. In the x86-64 model, these contexts
+are called stack frames. In addition to stack data pertinent to the logic of a
+function, the stack also saves two other things:
 
-- Saved RIP
-- Saved EBP
+- Saved Return Pointer
+- Saved Frame Pointer
+
+We can investigate this by creating an extremely simple sample application:
+
+```c
+void b() {
+    int stuff;
+    stuff = 1;
+    return;
+}
+
+void a() {
+    b();
+}
+
+int main() {
+    a();
+}
+```
+
+Compile it and look for the pertinent assembly listings:
+
+```console
+elliot@ctf101-shell:~/ctf101$ gcc -o stackframe stackframe.c
+elliot@ctf101-shell:~/ctf101$ objdump -d stackframe
+...
+00000000004004d6 <b>:
+  4004d6:	55                   	push   %rbp
+  4004d7:	48 89 e5             	mov    %rsp,%rbp
+  4004da:	c7 45 fc 01 00 00 00 	movl   $0x1,-0x4(%rbp)
+  4004e1:	90                   	nop
+  4004e2:	5d                   	pop    %rbp
+  4004e3:	c3                   	retq
+
+00000000004004e4 <a>:
+  4004e4:	55                   	push   %rbp
+  4004e5:	48 89 e5             	mov    %rsp,%rbp
+  4004e8:	b8 00 00 00 00       	mov    $0x0,%eax
+  4004ed:	e8 e4 ff ff ff       	callq  4004d6 <b>
+  4004f2:	90                   	nop
+  4004f3:	5d                   	pop    %rbp
+  4004f4:	c3                   	retq
+
+00000000004004f5 <main>:
+  4004f5:	55                   	push   %rbp
+  4004f6:	48 89 e5             	mov    %rsp,%rbp
+  4004f9:	b8 00 00 00 00       	mov    $0x0,%eax
+  4004fe:	e8 e1 ff ff ff       	callq  4004e4 <a>
+  400503:	b8 00 00 00 00       	mov    $0x0,%eax
+  400508:	5d                   	pop    %rbp
+  400509:	c3                   	retq
+  40050a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+...
+```
+
+Let's take a look at what happens when `b()` is called from `a()`.
+
+```console
+00000000004004e4 <a>:
+  ...
+  4004ed:	e8 e4 ff ff ff       	callq  4004d6 <b>
+  400503:	b8 00 00 00 00       	mov    $0x0,%eax
+  ...
+
+00000000004004d6 <b>:
+  4004d6:	55                   	push   %rbp
+  4004d7:	48 89 e5             	mov    %rsp,%rbp
+  4004da:	c7 45 fc 01 00 00 00 	movl   $0x1,-0x4(%rbp)
+  4004e1:	90                   	nop
+  4004e2:	5d                   	pop    %rbp
+  4004e3:	c3                   	retq
+```
+
+When `callq` executes, the following actions happen:
+
+1. The next address that should be executed after the function ends is pushed
+   onto the stack. This is the saved instruction pointer.
+2. The instruction pointer is set to the address of the function called
+
+In `b()`, the function prologue (400d6-4004da) is run. The function prologue
+sets up the stack frame for the function. Notice the the following things:
+
+1. The base pointer is pushed onto the stack. This is the saved frame pointer.
+2. The base pointer is set to the current stack pointer. This pushes the stack
+   boundary down.
 
 ## 9. Debuggers
 
