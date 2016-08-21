@@ -7,6 +7,7 @@ import random
 import string
 import socket
 import md5
+import os
 
 def genpass():
     syms = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -36,6 +37,15 @@ def main():
 
     if not mat:
         print "Sorry the username is invalid (not matching ^[a-z]+$)"
+        exit()
+
+    captcha = "".join(random.choice(string.ascii_letters) for i in range(7))
+    os.system("echo %s | toilet --gay")
+
+    captcha_user = raw_input("Please solve the captcha: ")
+
+    if captcha_user != captcha:
+        print "Captcha is wrong :)"
         exit()
 
     password = genpass()
