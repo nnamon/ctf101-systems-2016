@@ -40,7 +40,7 @@ def main():
         exit()
 
     captcha = "".join(random.choice(string.ascii_letters) for i in range(7))
-    os.system("echo %s | toilet --gay" % captcha)
+    os.system("echo %s | toilet" % captcha)
 
     captcha_user = raw_input("Please solve the captcha: ")
 
